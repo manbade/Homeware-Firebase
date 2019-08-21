@@ -165,6 +165,9 @@ firebase deploy
 ```Markdown
 https://us-central1-[id].cloudfunctions.net/smarthome
 ```
+
+Make sure that "us-central1" is your region, in case that it is not true change "us-central1" for the project region. You can see the region in Firebase console: Develop > functions, the correct URLs are in the middle collumn.
+
 4. Select `Save`.
 
 5. Go to `Account Linking` in the left side menu.
