@@ -87,14 +87,34 @@ char* Homeware::getJSON(){
   _client->print(_request);
 
   strcpy(_json_c, "");
-  bool detected = false;
+  while (_client->connected()) {
+    //_line = _client->readStringUntil('\n');
+    if (_client->readStringUntil('\n') == "\r") {
+      break;
+    }
+  }
+
+  char c = 'a';
+  while (_client->available()) {
+    c = _client->read();
+
+    int len = strlen(_json_c);
+    _json_c[len] = c;
+    _json_c[len+1] = '\0';
+
+  }
+
+
+  /*bool detected = false;
   while (_client->connected()) {
 
     char c = _client->read();
+    _client->getString();
+    //Serial.print(c);
 
     if (c == '{')
       detected = true;
-    else if (c == '}')
+    else if (detected && _last_c == '}' && c == ' ')
       detected = false;
 
      if (detected){
@@ -103,13 +123,10 @@ char* Homeware::getJSON(){
       _json_c[len+1] = '\0';
     }
 
+    _last_c = c;
 
   }
-  //Add the last }
-  int len = strlen(_json_c);
-  _json_c[len] = '}';
-  _json_c[len+1] = '\0';
-
+  */
   return _json_c;
 }
 

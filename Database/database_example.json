@@ -51,7 +51,7 @@
       },
       "authorization_code" : {
         "timestamp" : "patata",
-        "value" : "llight-code"
+        "value" : "light-code"
       },
       "refresh_token" : {
         "timestamp" : 1559847064459,

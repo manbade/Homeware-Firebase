@@ -458,31 +458,42 @@
     if (confirm("Do you want to delete the device?")){
       var n = document.getElementById("n").value;
       var html = "";
-      devicesRef.child(n).remove()
-        .then(function() {
-          html = '<div class="alert alert-warning fade show" role="alert" id="deletedAlert"> <b>Success!</b> The device has been deleted correctly.</div>';
-          //Make alert show up
-          $('#alertContainer').html(html);
-          $('#deletedAlert').alert()
-          setTimeout(function() {
-              $("#deletedAlert").remove();
-          }, 5000);
-        })
-        .catch(function(error){
-          html = '<div class="alert alert-danger fade show" role="alert" id="deletedAlert"> <b>Error!</b> The device hasn\'t been deleted correctly.</div>';
-          //Make alert show up
-          $('#alertContainer').html(html);
-          $('#deletedAlert').alert()
-          setTimeout(function() {
-            $("#deletedAlert").remove();
-          }, 5000);
-        });
-      var id = document.getElementById("id").value;
-      statusRef.child(id).remove();
-      tokensRef.child(id).remove();
-      aliveRef.child(id).remove();
+      //Get all the devices and delete the correct one
+      devicesRef.once('value', snap => {
+          var obj = snap.val();
+          obj.splice(n,1);
+          //Save the modified array
+          devicesRef.set(obj)
+            .then(function() {
+              html = '<div class="alert alert-warning fade show" role="alert" id="deletedAlert"> <b>Success!</b> The device has been deleted correctly.</div>';
+              //Make alert show up
+              $('#alertContainer').html(html);
+              $('#deletedAlert').alert()
+              setTimeout(function() {
+                  $("#deletedAlert").remove();
+              }, 5000);
 
-      window.location.href = "/cms/devices/";
+              var id = document.getElementById("id").value;
+              statusRef.child(id).remove();
+              tokensRef.child(id).remove();
+              aliveRef.child(id).remove();
+              console.log(obj);
+              window.location.href = "/cms/devices/";
+            })
+            .catch(function(error){
+              console.log(error);
+              html = '<div class="alert alert-danger fade show" role="alert" id="deletedAlert"> <b>Error!</b> The device hasn\'t been deleted correctly.</div>';
+              //Make alert show up
+              $('#alertContainer').html(html);
+              $('#deletedAlert').alert()
+              setTimeout(function() {
+                $("#deletedAlert").remove();
+              }, 5000);
+            });
+
+
+        }
+      );
     } else {
       //Make alert show up
        $('#alertContainer').html('<div class="alert alert-success fade show" role="alert" id="savedAlert"> <b>OK</b> The device hasn\'t been deleted. Be careful!</div>');
