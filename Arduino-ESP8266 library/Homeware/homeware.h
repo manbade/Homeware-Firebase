@@ -16,6 +16,7 @@ private:
   char _actual[50];
   char _state[50];
   char _json_c[200];
+  char _last_c;
 
   WiFiClientSecure* _client;
   const int _httpsPort = 443;
