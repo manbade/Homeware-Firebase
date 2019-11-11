@@ -1,6 +1,6 @@
 (function () {
 
-  var actual = 'v0.6.1';
+  var actual = 'v0.6.2';
   document.getElementById('HomeWareStatus').innerHTML += '<p> <b>Current version:</b> ' + actual + ' </p>';
 
   firebase.initializeApp(config);
