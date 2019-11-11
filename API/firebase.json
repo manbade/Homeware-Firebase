@@ -14,8 +14,12 @@
         "function": "app"
       },
       {
-        "source": "/panel/",
-        "destination": "/panel.html"
+        "source": "/navbar/",
+        "destination": "/navbar.html"
+      },
+      {
+        "source": "/head/",
+        "destination": "/head.html"
       },
       {
         "source": "/cms/",

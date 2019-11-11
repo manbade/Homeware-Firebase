@@ -1,5 +1,5 @@
 (function () {
-
+  
   firebase.initializeApp(config);
 
   // Get a statusRef to the database service
