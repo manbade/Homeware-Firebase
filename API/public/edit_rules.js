@@ -45,6 +45,7 @@
             document.getElementById("triggerId").value = rule.trigger.id;
             document.getElementById("triggerParam").value = rule.trigger.param;
             document.getElementById("triggerValue").value = rule.trigger.value;
+            document.getElementById("triggerOperator").value = rule.trigger.operator;
             //Create the targets
             var targetHTML = '';
             Object(rule.targets).forEach(function(target){
@@ -58,6 +59,7 @@
         statusRef.once('value', statusSnap => {
           devicesRef.once('value', devicesSnap => {
             var devices = {};
+            console.log(devicesSnap.val());
             //Get a relation between id and names
             Object(devicesSnap.val()).forEach(function(device){
               devices[device.id] = device.name.nicknames[0];
@@ -124,6 +126,7 @@
     var rule = {
       trigger: {
         id: document.getElementById("triggerId").value,
+        operator: document.getElementById("triggerOperator").value,
         param: document.getElementById("triggerParam").value,
         value: value
       },

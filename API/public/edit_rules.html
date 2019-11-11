@@ -39,9 +39,17 @@
 
                   </select>
                 </div>
-                <div class="form-group col-md-4">
+                <div class="form-group col-md-1">
+                  <label for="triggerOperator">Operator</label>
+                  <select class="custom-select mr-sm-2" id="triggerOperator">
+                    <option value="1">=</option>
+                    <option value="2"><</option>
+                    <option value="3">></option>
+                  </select>
+                </div>
+                <div class="form-group col-md-3">
                   <label for="triggerValue">Trigger value</label>
-                  <input type="text" class="form-control" id="triggerValue">
+                  <input type="text" class="form-control" id="triggerValue" placeholder="true, false or a number">
                 </div>
               </div>
             </div>
@@ -69,7 +77,7 @@
                 </div>
                 <div class="form-group col-md-3">
                   <label for="triggerValue">Target value</label>
-                  <input type="text" class="form-control" id="targetValue">
+                  <input type="text" class="form-control" id="targetValue" placeholder="true, false or a number">
                 </div>
                 <div class="form-group col-md-1">
                   <label for="add_arm_levels_button">.</label>

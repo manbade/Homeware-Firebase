@@ -550,9 +550,17 @@ exports.rules = functions.database.ref('/status/').onUpdate(async (change, conte
     var rules = rulesSnap.val();
 
     Object(rules).forEach(function(rule){
-      if(status[rule.trigger.id][rule.trigger.param] == rule.trigger.value){
-        /*var json = {};
-        json[rule.target[1].id] = rule.target[1].value*/
+      var change = false;
+      //Verify operators
+      if(rule.trigger.operator == 1 && status[rule.trigger.id][rule.trigger.param] == rule.trigger.value){
+        change = true;
+      } else if(rule.trigger.operator == 2 && status[rule.trigger.id][rule.trigger.param] < rule.trigger.value){
+        change = true;
+      } else if(rule.trigger.operator == 3 && status[rule.trigger.id][rule.trigger.param] > rule.trigger.value){
+        change = true;
+      }
+
+      if(change){
 
         Object(rule.targets).forEach(function(target){
           var json = {};
