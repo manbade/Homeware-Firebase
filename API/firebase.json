@@ -30,6 +30,10 @@
         "destination": "/login.html"
       },
       {
+        "source": "/cms/setup/",
+        "destination": "/setup.html"
+      },
+      {
         "source": "/cms/devices/",
         "destination": "/devices.html"
       },
