@@ -2,6 +2,15 @@
 
   firebase.initializeApp(config);
 
+  firebase.auth().onAuthStateChanged(firebaseUser => {
+    if (firebaseUser){
+      console.log('Logged in');
+    } else {
+      console.log('Not logged in');
+      window.location.href = "/cms/login/";
+    }
+  });
+
   // Get a status to the database service
   var database = firebase.database();
   var statusRef = database.ref().child('status');
@@ -38,19 +47,5 @@
       rulesList.innerHTML = rulesHTML;
     });
   });
-
-  logout.addEventListener('click', e =>{
-    firebase.auth().signOut();
-  });
-
-  firebase.auth().onAuthStateChanged(firebaseUser => {
-    if (firebaseUser){
-      console.log('Logged in');
-    } else {
-      console.log('Not logged in');
-      window.location.href = "/cms/login/";
-    }
-  });
-
 
 }());

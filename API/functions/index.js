@@ -153,15 +153,12 @@ exports.token = functions.https.onRequest((request, response) => {
     var code = request.query.refresh_token ? request.query.refresh_token : request.body.refresh_token;
   }
   var agent = request.get("User-Agent");
-
   if (code === undefined){
     code = request.get("code");
   }
-
   if (grantType === undefined){
     grantType = request.get("grant_type");
   }
-
 
   //Verify specials agents
   if (agent.indexOf("+http://www.google.com/bot.html") > 0){
@@ -171,12 +168,16 @@ exports.token = functions.https.onRequest((request, response) => {
   }
 
   //Get the tokens and ids from DDBB
+  var tokenJSON
   admin.database().ref('/token/').once('value')
   .then(function(snapshot) {
-    var tokenJSON = snapshot.val();
+    tokenJSON = snapshot.val();
+    return admin.database().ref('/settings/').once('value');
+  })
+  .then(function(settingsSnapshot) {
+    var settingsJSON = settingsSnapshot.val();
 
-    //Verify the client_id from Google. (¿Are you Google?)
-    //if (client_id == tokenJSON["google"]["client_id"] && client_secret == tokenJSON["google"]["client_secret"] && code == tokenJSON["google"][refresh_token]){
+    //Verify the code
     if (code == tokenJSON[agent][grantType]["value"]){
 
       //Tokens lifetime
@@ -201,12 +202,13 @@ exports.token = functions.https.onRequest((request, response) => {
           expires_in: secondsInDay,
         };
       }
-      if (agent == "google"){
-        //Clear authorization_code
+      //Clear authorization_code if autoAuthentication is not permited
+      if (settingsJSON.autoAuthentication == false || agent == "google"){
         admin.database().ref('/token/').child(agent).child("authorization_code").update({
             value: "-",
         });
       }
+      //Create an alert on the status register
       var current_date = new Date().getTime();
       var text = "Se ha conectado un nuevo dispositivo <br> <b>Agente</b>: " + agent + " <br> <b>Autenticación</b>: " + grantType;
       admin.database().ref('/events/').child(current_date).update({
@@ -221,6 +223,9 @@ exports.token = functions.https.onRequest((request, response) => {
       obj = {
         error: "invalid_grant"
       };
+      //Request for manual authorization
+      admin.database().ref('/token/').child(agent).child(grantType).update({ requestManualAuthorization: true });
+      //Save an event
       var current_date = new Date().getTime();
       var text = "Se ha rechazado a un dispositivo <br> <b>Agente</b>: " + agent + " <br> <b>Autenticación</b>: " + grantType + " <br> <b>Code</b>: " + code;
       admin.database().ref('/events/').child(current_date).update({

@@ -30,8 +30,8 @@
         "destination": "/login.html"
       },
       {
-        "source": "/cms/setup/",
-        "destination": "/setup.html"
+        "source": "/cms/settings/",
+        "destination": "/settings.html"
       },
       {
         "source": "/cms/devices/",
