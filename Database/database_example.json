@@ -20,6 +20,14 @@
     "traits" : [ "action.devices.traits.OnOff", "action.devices.traits.Brightness" ],
     "type" : "action.devices.types.LIGHT"
   } ],
+  "settings" : {
+    "bools" : {
+      "autoAthorization": true
+    },
+    "strings" : {
+      "codeKey": "-code"
+    }
+  },
   "status" : {
     "light" : {
       "brightness" : 100,

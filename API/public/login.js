@@ -20,6 +20,11 @@
       window.location.href = "/cms/";
     } else {
       console.log('Not logged in');
+      if(config.apiKey == "<your-apikey>"){
+        window.location.href = "/cms/setup/";
+      }
+
+
     }
   });
 

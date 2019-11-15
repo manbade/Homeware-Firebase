@@ -53,3 +53,16 @@ h2 {
   width: 90%;
   margin-left: 5%;
 }
+.textMessageAlert{
+  color:#CACACA;
+  margin-right: 20px;
+}
+.colAligmentA{
+  display: flex;
+  align-items: center;
+}
+.colAligmentL label{
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
