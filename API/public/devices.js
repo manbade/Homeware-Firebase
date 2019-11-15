@@ -121,9 +121,12 @@ database.ref('status').on('value', statusSnapshot => {
 });
 
 function authorize(id){
-  var code = id + '-code';
-  database.ref('/token/').child(id).child('authorization_code').update({
-    requestManualAuthorization: false,
-    value: code
-  })
+  database.ref('/settings/strings/').once('value')
+    .then(function(settingsSnapshot) {
+      var code = id + settingsSnapshot.val().codeKey;
+      database.ref('/token/').child(id).child('authorization_code').update({
+        requestManualAuthorization: false,
+        value: code
+      })
+    })
 }
