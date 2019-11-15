@@ -84,6 +84,25 @@ database.ref('/settings/strings/').once('value')
     });
   })
 
+//Load the events
+showEventsLog.addEventListener('click', function(){
+  database.ref('/events/read/').on('value', function(eventsSnapshot){
+    var events = eventsSnapshot.val();
+    var eventsKeys = Object.keys(events);
+    //Compose the HTML
+    var html = '';
+    for(i = eventsKeys.length-1; i > eventsKeys.length-11; i--){
+      var uniqueEvent = events[eventsKeys[i]];
+      date = new Date(uniqueEvent.timestamp);
+      html += '<div class="card"> <div class="card-body">';
+      html += '<b>' + uniqueEvent.title + '</b> <br> ' + uniqueEvent.text + ' <br> <b>Timestamp</b>: ';
+      html += addZero(date.getDate()) + '/' + addZero(date.getMonth()) + '/' + date.getFullYear() + ' ' + addZero(date.getHours()) + ':' + addZero(date.getMinutes()) + ':' + addZero(date.getSeconds());
+      html += '</div> </div>';
+    }
+
+    document.getElementById('eventsLogBox').innerHTML = html;
+  })
+})
 
 function updateModal(settings){
   var title = 'Fail';

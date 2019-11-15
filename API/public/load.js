@@ -1,4 +1,4 @@
-  var ajaxNavbar = new XMLHttpRequest();
+var ajaxNavbar = new XMLHttpRequest();
 ajaxNavbar.addEventListener("load", loadNavbar);
 ajaxNavbar.open("GET", "/navbar/");
 ajaxNavbar.send();

@@ -211,7 +211,7 @@ exports.token = functions.https.onRequest((request, response) => {
       //Create an alert on the status register
       var current_date = new Date().getTime();
       var text = "Se ha conectado un nuevo dispositivo <br> <b>Agente</b>: " + agent + " <br> <b>Autenticación</b>: " + grantType;
-      admin.database().ref('/events/').child(current_date).update({
+      admin.database().ref('/events/unread/').child(current_date).update({
         timestamp: current_date,
         title: "Conexión - Info",
         text: text,
@@ -228,7 +228,7 @@ exports.token = functions.https.onRequest((request, response) => {
       //Save an event
       var current_date = new Date().getTime();
       var text = "Se ha rechazado a un dispositivo <br> <b>Agente</b>: " + agent + " <br> <b>Autenticación</b>: " + grantType + " <br> <b>Code</b>: " + code;
-      admin.database().ref('/events/').child(current_date).update({
+      admin.database().ref('/events/unread/').child(current_date).update({
         timestamp: current_date,
         title: "Conexión - ALERT",
         text: text,
