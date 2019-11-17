@@ -199,6 +199,7 @@ exports.token = functions.https.onRequest((request, response) => {
         obj = {
           token_type: 'bearer',
           access_token: access_token,
+          refresh_token: code,
           expires_in: secondsInDay,
         };
       }
@@ -541,14 +542,15 @@ function expireTokens(){
 
 //Verify rules
 function verifyRules(){
+  var status = {}
   admin.database().ref('/status/').once('value')
     .then(function(statusSnapshot){
-      const status = statusSnapshot.val();
+      status = statusSnapshot.val();
       return admin.database().ref('/rules/').once('value')
     })
     .then(function(rulesSnap) {
       var rules = rulesSnap.val();
-
+      console.log(rules);
       Object(rules).forEach(function(rule){
         var change = false;
         //Time
@@ -558,6 +560,9 @@ function verifyRules(){
         //Verify operators
         if(rule.trigger.operator == 1 && status[rule.trigger.id][rule.trigger.param] == rule.trigger.value){
           change = true; //Equal
+          console.log(rule);
+          console.log(status[rule.trigger.id][rule.trigger.param]);
+          console.log(rule.trigger.value);
         } else if(rule.trigger.operator == 2 && status[rule.trigger.id][rule.trigger.param] < rule.trigger.value){
           change = true; //General less than
         } else if(rule.trigger.operator == 3 && status[rule.trigger.id][rule.trigger.param] > rule.trigger.value){

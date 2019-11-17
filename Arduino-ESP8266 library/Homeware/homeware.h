@@ -21,10 +21,12 @@ private:
   WiFiClientSecure* _client;
   const int _httpsPort = 443;
 public:
+  char _refresh[41];
   //Homeware(int a);
   Homeware(char* id, char* host, WiFiClientSecure* client);
   void test();
-  void getToken();
+  void getToken(bool refresh);
+  void refreshToken();
   char* getJSON();
   bool sendTrait(char* trait, char* value, char* vartype);
 };
