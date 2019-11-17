@@ -199,6 +199,7 @@ exports.token = functions.https.onRequest((request, response) => {
         obj = {
           token_type: 'bearer',
           access_token: access_token,
+          refresh_token: code,
           expires_in: secondsInDay,
         };
       }
@@ -211,7 +212,7 @@ exports.token = functions.https.onRequest((request, response) => {
       //Create an alert on the status register
       var current_date = new Date().getTime();
       var text = "Se ha conectado un nuevo dispositivo <br> <b>Agente</b>: " + agent + " <br> <b>Autenticación</b>: " + grantType;
-      admin.database().ref('/events/').child(current_date).update({
+      admin.database().ref('/events/unread/').child(current_date).update({
         timestamp: current_date,
         title: "Conexión - Info",
         text: text,
@@ -228,7 +229,7 @@ exports.token = functions.https.onRequest((request, response) => {
       //Save an event
       var current_date = new Date().getTime();
       var text = "Se ha rechazado a un dispositivo <br> <b>Agente</b>: " + agent + " <br> <b>Autenticación</b>: " + grantType + " <br> <b>Code</b>: " + code;
-      admin.database().ref('/events/').child(current_date).update({
+      admin.database().ref('/events/unread/').child(current_date).update({
         timestamp: current_date,
         title: "Conexión - ALERT",
         text: text,
@@ -370,60 +371,6 @@ app.onExecute((body, headers) => {
 
                 firebaseRef.child(deviceId).update(params);
                 payload.commands[0].states = params;
-
-                /*
-                switch (execCommand) {
-                  case 'action.devices.commands.OnOff':
-                    firebaseRef.child(deviceId).update({
-                      on: params.on,
-                    });
-                    payload.commands[0].states.on = params.on;
-                    break;
-                  case 'action.devices.commands.StartStop':
-                    firebaseRef.child(deviceId).update({
-
-                      isRunning: params.start,
-                    });
-                    payload.commands[0].states.isRunning = params.start;
-                    break;
-                  case 'action.devices.commands.PauseUnpause':
-                    firebaseRef.child(deviceId).update({
-                      isPaused: params.pause,
-                    });
-                    payload.commands[0].states.isPaused = params.pause;
-                    break;
-                  case 'action.devices.commands.BrightnessAbsolute':
-                    firebaseRef.child(deviceId).update({
-                      brightness: params.brightness,
-                    });
-                    payload.commands[0].states.brightness = params.brightness;
-                    break;
-                  case 'action.devices.commands.OpenClose':
-                    firebaseRef.child(deviceId).update({
-                      openPercent: params.openPercent,
-                    });
-                    payload.commands[0].states.openState = params.openPercent;
-                    break;
-                  case 'action.devices.commands.ThermostatTemperatureSetpoint':
-                    firebaseRef.child(deviceId).update({
-                      thermostatTemperatureSetpoint: params.thermostatTemperatureSetpoint,
-                    });
-                    payload.commands[0].states.thermostatTemperatureSetpoint = params.thermostatTemperatureSetpoint;
-                    break;
-                  case 'action.devices.commands.ThermostatSetMode':
-                    firebaseRef.child(deviceId).update({
-                      thermostatMode: params.thermostatMode,
-                    });
-                    payload.commands[0].states.thermostatMode = params.thermostatMode;
-                    break;
-                  case 'action.devices.commands.ColorAbsolute':
-                    firebaseRef.child(deviceId).update({
-                      color: params.color,
-                    });
-                    payload.commands[0].states.color = params.color;
-                    break;
-
-                }*/
               }
             }
           }
@@ -503,6 +450,7 @@ function updatestates() {
 
 }
 
+//Expire tokens
 function expireTokens(){
 
   //Get timestamp values
@@ -538,41 +486,78 @@ function expireTokens(){
 
 }
 
+//Verify rules
+function verifyRules(){
+  var status = {}
+  admin.database().ref('/status/').once('value')
+    .then(function(statusSnapshot){
+      status = statusSnapshot.val();
+      return admin.database().ref('/rules/').once('value')
+    })
+    .then(function(rulesSnap) {
+      var rules = rulesSnap.val();
+      Object(rules).forEach(function(rule){
+        //Time
+        var d = new Date();
+        var h = d.getHours();
+        var m = d.getMinutes();
+
+        //Detect the kind of triger (simple or multiple)
+        var ruleKeys = Object.keys(rule);
+        var amountRules = 1;
+        var verified = 0;
+        var triggers = [];
+        if (ruleKeys.includes("triggers")){
+          console.log('yes');
+          amountRules = Object.keys(rule.triggers).length;
+          triggers = rule.triggers;
+        } else {
+          console.log('no');
+          triggers.push(rule.trigger);
+        }
+        console.log(amountRules);
+
+        triggers.forEach(function(trigger){
+          //Verify operators
+          if(trigger.operator == 1 && status[trigger.id][trigger.param] == trigger.value){
+            verified++; //Equal
+          } else if(trigger.operator == 2 && status[trigger.id][trigger.param] < trigger.value){
+            verified++; //General less than
+          } else if(trigger.operator == 3 && status[trigger.id][trigger.param] > trigger.value){
+            verified++; //General greather than
+          } else if(trigger.operator == 4 && h == parseInt(trigger.value.split(':')[0], 10) && m == parseInt(trigger.value.split(':')[1], 10)){
+            verified++; //Time greather than
+          }
+        });
+        console.log(verified);
+        if(verified == amountRules){
+
+          Object(rule.targets).forEach(function(target){
+            var json = {};
+            json[target.param] = target.value;
+            admin.database().ref().child("status").child(target.id).update(json);
+          });
+        }
+      });
+    });
+}
+
 exports.cron = functions.https.onRequest((request, response) => {
   updatestates();
   expireTokens();
+  verifyRules();
   response.status(200).send("Done");
 });
 
 //Rules execution
 exports.rules = functions.database.ref('/status/').onUpdate(async (change, context) => {
-  const status = change.after.val();
+  verifyRules();
   console.log("Done");
+});
 
-
-  admin.database().ref('/rules/').once('value')
-  .then(function(rulesSnap) {
-    var rules = rulesSnap.val();
-
-    Object(rules).forEach(function(rule){
-      var change = false;
-      //Verify operators
-      if(rule.trigger.operator == 1 && status[rule.trigger.id][rule.trigger.param] == rule.trigger.value){
-        change = true;
-      } else if(rule.trigger.operator == 2 && status[rule.trigger.id][rule.trigger.param] < rule.trigger.value){
-        change = true;
-      } else if(rule.trigger.operator == 3 && status[rule.trigger.id][rule.trigger.param] > rule.trigger.value){
-        change = true;
-      }
-
-      if(change){
-
-        Object(rule.targets).forEach(function(target){
-          var json = {};
-          json[target.param] = target.value;
-          admin.database().ref().child("status").child(target.id).update(json);
-        });
-      }
-    });
-  });
+exports.apitime = functions.https.onRequest((request, response) => {
+  var d = new Date();
+  var h = d.getHours();
+  var m = d.getMinutes();
+  response.status(200).send(h + ':' + m);
 });
