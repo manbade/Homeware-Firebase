@@ -43,7 +43,7 @@ void setup() {
   Serial.println(host);
   //Get access token from the API
   Serial.println(F("Getting token"));
-  api.getToken();
+  api.getToken(false);
 }
 
 void loop() {
