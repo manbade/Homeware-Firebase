@@ -550,28 +550,41 @@ function verifyRules(){
     })
     .then(function(rulesSnap) {
       var rules = rulesSnap.val();
-      console.log(rules);
       Object(rules).forEach(function(rule){
-        var change = false;
         //Time
         var d = new Date();
         var h = d.getHours();
         var m = d.getMinutes();
-        //Verify operators
-        if(rule.trigger.operator == 1 && status[rule.trigger.id][rule.trigger.param] == rule.trigger.value){
-          change = true; //Equal
-          console.log(rule);
-          console.log(status[rule.trigger.id][rule.trigger.param]);
-          console.log(rule.trigger.value);
-        } else if(rule.trigger.operator == 2 && status[rule.trigger.id][rule.trigger.param] < rule.trigger.value){
-          change = true; //General less than
-        } else if(rule.trigger.operator == 3 && status[rule.trigger.id][rule.trigger.param] > rule.trigger.value){
-          change = true; //General greather than
-        } else if(rule.trigger.operator == 4 && h == parseInt(rule.trigger.value.split(':')[0], 10) && m == parseInt(rule.trigger.value.split(':')[1], 10)){
-          change = true; //Time greather than
-        }
 
-        if(change){
+        //Detect the kind of triger (simple or multiple)
+        var ruleKeys = Object.keys(rule);
+        var amountRules = 1;
+        var verified = 0;
+        var triggers = [];
+        if (ruleKeys.includes("triggers")){
+          console.log('yes');
+          amountRules = Object.keys(rule.triggers).length;
+          triggers = rule.triggers;
+        } else {
+          console.log('no');
+          triggers.push(rule.trigger);
+        }
+        console.log(amountRules);
+
+        triggers.forEach(function(trigger){
+          //Verify operators
+          if(trigger.operator == 1 && status[trigger.id][trigger.param] == trigger.value){
+            verified++; //Equal
+          } else if(trigger.operator == 2 && status[trigger.id][trigger.param] < trigger.value){
+            verified++; //General less than
+          } else if(trigger.operator == 3 && status[trigger.id][trigger.param] > trigger.value){
+            verified++; //General greather than
+          } else if(trigger.operator == 4 && h == parseInt(trigger.value.split(':')[0], 10) && m == parseInt(trigger.value.split(':')[1], 10)){
+            verified++; //Time greather than
+          }
+        });
+        console.log(verified);
+        if(verified == amountRules){
 
           Object(rule.targets).forEach(function(target){
             var json = {};

@@ -29,11 +29,29 @@
       var rulesHTML = '';
       var n = 0;
       Object(rules).forEach(function(rule){
+        //Detect the kind of triger (simple or multiple)
+        var ruleKeys = Object.keys(rule);
+        var amountRules = 1;
+        var verified = 0;
+        var triggers = [];
+        if (ruleKeys.includes("triggers")){
+          amountRules = Object.keys(rule.triggers).length;
+          triggers = rule.triggers;
+        } else {
+          triggers.push(rule.trigger);
+        }
+
         var operator = [' ', '=', '<', '>'];
         //Rules
         rulesHTML += '<div class="card" style="width: 18rem; margin: 20px;"> \
                       <div class="card-header">'
-        rulesHTML +=   devices[rule.trigger.id] ? '<b>' + devices[rule.trigger.id] + ' </b> <br>  ' + rule.trigger.param + ' ' + operator[rule.trigger.operator] + ' ' + rule.trigger.value : '<b>Time</b> <br>' + rule.trigger.value;
+        var newLine = false;
+        triggers.forEach(function(trigger){
+          rulesHTML += newLine ? '<br>' : '';
+          rulesHTML += devices[trigger.id] ? '<b>' + devices[trigger.id] + ':</b> ' + trigger.param + ' ' + operator[trigger.operator] + ' ' + trigger.value : '<b>Time</b> <br>' + trigger.value;
+          newLine = true;
+        });
+
         rulesHTML += '</div> \
                       <ul class="list-group list-group-flush">';
                       Object(rule.targets).forEach(function(target){

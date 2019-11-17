@@ -34,15 +34,20 @@
 
             <div class="container p-3 mb-2 bg-light text-dark collapse" id="deviceTriggered">
               <h3>Triggered by device</h3>
+              <input type="hidden" value="-1" id="availableTriggers">
+              <div class="row" id="badge_triggers_container">
+                <!--Targets cards-->
+              </div>
+              <hr>
               <div class="form-row">
-                <div class="form-group col-md-4">
+                <div class="form-group col-md-3">
                   <label for="triggerId">Trigger</label>
                   <select class="custom-select mr-sm-2" id="triggerId">
                     <option selected>Choose...</option>
                   </select>
                 </div>
                 <div class="form-group col-md-4">
-                  <label for="triggerParam">Trigger param</label>
+                  <label for="triggerParam">Target param</label>
                   <select class="custom-select mr-sm-2" id="triggerParam">
 
                   </select>
@@ -58,6 +63,10 @@
                 <div class="form-group col-md-3">
                   <label for="triggerValue">Trigger value</label>
                   <input type="text" class="form-control" id="triggerValue" placeholder="true, false or a number">
+                </div>
+                <div class="form-group col-md-1">
+                  <label for="add_arm_levels_button">.</label>
+                  <input type="button" class="form-control" id="add_triggers_button" value="Add">
                 </div>
               </div>
             </div>
@@ -86,19 +95,19 @@
               <hr>
               <div class="form-row">
                 <div class="form-group col-md-4">
-                  <label for="triggerId">Target</label>
+                  <label for="targetId">Target</label>
                   <select class="custom-select mr-sm-2" id="targetId" onchange="updateTriggerParam()">
                     <option selected>Choose...</option>
                   </select>
                 </div>
                 <div class="form-group col-md-4">
-                  <label for="triggerParam">Target param</label>
+                  <label for="targetParam">Target param</label>
                   <select class="custom-select mr-sm-2" id="targetParam">
 
                   </select>
                 </div>
                 <div class="form-group col-md-3">
-                  <label for="triggerValue">Target value</label>
+                  <label for="targetValue">Target value</label>
                   <input type="text" class="form-control" id="targetValue" placeholder="true, false or a number">
                 </div>
                 <div class="form-group col-md-1">
