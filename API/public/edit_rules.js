@@ -22,17 +22,38 @@ rulesRef.on('value', snap => {
     if (getParameterByName("n")){
       var n = parseInt(getParameterByName("n"));
       var rule = snap.val()[n];
+      var triggerType = "device";
       //Get the vector index
       document.getElementById("n").value = getParameterByName("n");
+      //Show the correct containers
+      document.getElementById('target').style.visibility = "visible";
+      document.getElementById('deviceTriggeredButton').style.visibility = "hidden";
+      document.getElementById('timeTriggeredButton').style.visibility = "hidden";
+      if (rule.trigger.id == "time"){
+        $('#timeTriggered').collapse('show');
+        var time = rule.trigger.value.split(':');
+        document.getElementById('triggerType').value = 'time';
+        document.getElementById('hour').value = time[0];
+        document.getElementById('minute').value = time[1];
+        triggerType = "time";
+      } else {
+        $('#deviceTriggered').collapse('show');
+        document.getElementById('triggerType').value = 'device';
+
+      }
 
       statusRef.once('value', statusSnap => {
         var generalStatus = statusSnap.val();
         //Create the trigger id list
-        var selectHTML = '';
-        Object.keys(generalStatus[rule.trigger.id]).forEach(function(status){
-          selectHTML += '<option>' + status + '</option>';
-        });
-        triggerParam.innerHTML = selectHTML;
+
+        if(triggerType == "device"){
+          var selectHTML = '';
+          Object.keys(generalStatus[rule.trigger.id]).forEach(function(status){
+            selectHTML += '<option>' + status + '</option>';
+          });
+          triggerParam.innerHTML = selectHTML;
+        }
+
         //Select the trigger's data
         devicesRef.once('value', devicesSnap => {
           var devices = {};
@@ -47,12 +68,14 @@ rulesRef.on('value', snap => {
             selectHTML += '<option value="' + id + '">' + devices[id] + '</option>';
           });
 
-          triggerId.innerHTML = selectHTML;
           targetId.innerHTML = selectHTML;
-          document.getElementById("triggerId").value = rule.trigger.id;
-          document.getElementById("triggerParam").value = rule.trigger.param;
-          document.getElementById("triggerValue").value = rule.trigger.value;
-          document.getElementById("triggerOperator").value = rule.trigger.operator;
+          if(triggerType == "device"){
+            triggerId.innerHTML = selectHTML;
+            document.getElementById("triggerId").value = rule.trigger.id;
+            document.getElementById("triggerParam").value = rule.trigger.param;
+            document.getElementById("triggerValue").value = rule.trigger.value;
+            document.getElementById("triggerOperator").value = rule.trigger.operator;
+          }
           //Create the targets
           var targetHTML = '';
           Object(rule.targets).forEach(function(target){
@@ -62,6 +85,8 @@ rulesRef.on('value', snap => {
           document.getElementById("availableTargets").value = JSON.stringify(rule.targets);
         });
       });
+
+
     } else {
       statusRef.once('value', statusSnap => {
         devicesRef.once('value', devicesSnap => {
@@ -119,25 +144,42 @@ targetId.addEventListener('change', function(){
 });
 
 save.addEventListener('click', e => {
-  //Create the new toggle JSON
-  var value = document.getElementById("triggerValue").value;
-  var num = ["0","1","2","3","4","5","6","7","8","9"];
-  if (value == "true"){
-    value = true;
-  } else if (value == "false") {
-    value = false;
-  } else if (num.indexOf(value[0]) >= 0) {
-    value = parseInt(value);
-  }
-  //Compose JSON
-  var rule = {
-    trigger: {
-      id: document.getElementById("triggerId").value,
-      operator: document.getElementById("triggerOperator").value,
-      param: document.getElementById("triggerParam").value,
-      value: value
-    },
-    targets: []
+  var rule = {};
+  var triggerType = document.getElementById("triggerType").value;
+  console.log(triggerType);
+  //Verify the trigger type
+  if(triggerType == "device"){
+    //Analise the value
+    var value = document.getElementById("triggerValue").value;
+    var num = ["0","1","2","3","4","5","6","7","8","9"];
+    if (value == "true"){
+      value = true;
+    } else if (value == "false") {
+      value = false;
+    } else if (num.indexOf(value[0]) >= 0) {
+      value = parseInt(value);
+    }
+    //Compose JSON
+    rule = {
+      trigger: {
+        id: document.getElementById("triggerId").value,
+        operator: document.getElementById("triggerOperator").value,
+        param: document.getElementById("triggerParam").value,
+        value: value
+      },
+      targets: []
+    }
+  } else if(triggerType == "time") {
+    var time = document.getElementById("hour").value + ':' + document.getElementById("minute").value;
+    rule = {
+      trigger: {
+        id: "time",
+        operator: "4",
+        param: "time",
+        value: time
+      },
+      targets: []
+    }
   }
 
   //Get targets JSON
@@ -181,6 +223,7 @@ save.addEventListener('click', e => {
       }, 5000);
     });
   }
+
 });
 
 add_targets_button.addEventListener('click', e => {
@@ -263,6 +306,12 @@ deleteDevice.addEventListener('click', e => {
 
 });
 
+function changeTriggerType(type){
+  document.getElementById('triggerType').value = type;
+  document.getElementById('target').style.visibility = "visible";
+  document.getElementById('deviceTriggeredButton').style.visibility = "hidden";
+  document.getElementById('timeTriggeredButton').style.visibility = "hidden";
+}
 
 ////////////////////////////////////////
 //Targets Magic

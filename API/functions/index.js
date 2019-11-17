@@ -503,6 +503,7 @@ function updatestates() {
 
 }
 
+//Expire tokens
 function expireTokens(){
 
   //Get timestamp values
@@ -538,41 +539,54 @@ function expireTokens(){
 
 }
 
+//Verify rules
+function verifyRules(){
+  admin.database().ref('/status/').once('value')
+    .then(function(statusSnapshot){
+      const status = statusSnapshot.val();
+      return admin.database().ref('/rules/').once('value')
+    })
+    .then(function(rulesSnap) {
+      var rules = rulesSnap.val();
+
+      Object(rules).forEach(function(rule){
+        var change = false;
+        //Time
+        var d = new Date();
+        var h = d.getHours();
+        var m = d.getMinutes();
+        //Verify operators
+        if(rule.trigger.operator == 1 && status[rule.trigger.id][rule.trigger.param] == rule.trigger.value){
+          change = true; //Equal
+        } else if(rule.trigger.operator == 2 && status[rule.trigger.id][rule.trigger.param] < rule.trigger.value){
+          change = true; //General less than
+        } else if(rule.trigger.operator == 3 && status[rule.trigger.id][rule.trigger.param] > rule.trigger.value){
+          change = true; //General greather than
+        } else if(rule.trigger.operator == 4 && h == parseInt(rule.trigger.value.split(':')[0], 10) && m == parseInt(rule.trigger.value.split(':')[1], 10)){
+          change = true; //Time greather than
+        }
+
+        if(change){
+
+          Object(rule.targets).forEach(function(target){
+            var json = {};
+            json[target.param] = target.value;
+            admin.database().ref().child("status").child(target.id).update(json);
+          });
+        }
+      });
+    });
+}
+
 exports.cron = functions.https.onRequest((request, response) => {
   updatestates();
   expireTokens();
+  verifyRules();
   response.status(200).send("Done");
 });
 
 //Rules execution
 exports.rules = functions.database.ref('/status/').onUpdate(async (change, context) => {
-  const status = change.after.val();
+  verifyRules();
   console.log("Done");
-
-
-  admin.database().ref('/rules/').once('value')
-  .then(function(rulesSnap) {
-    var rules = rulesSnap.val();
-
-    Object(rules).forEach(function(rule){
-      var change = false;
-      //Verify operators
-      if(rule.trigger.operator == 1 && status[rule.trigger.id][rule.trigger.param] == rule.trigger.value){
-        change = true;
-      } else if(rule.trigger.operator == 2 && status[rule.trigger.id][rule.trigger.param] < rule.trigger.value){
-        change = true;
-      } else if(rule.trigger.operator == 3 && status[rule.trigger.id][rule.trigger.param] > rule.trigger.value){
-        change = true;
-      }
-
-      if(change){
-
-        Object(rule.targets).forEach(function(target){
-          var json = {};
-          json[target.param] = target.value;
-          admin.database().ref().child("status").child(target.id).update(json);
-        });
-      }
-    });
-  });
 });

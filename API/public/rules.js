@@ -33,11 +33,11 @@
         //Rules
         rulesHTML += '<div class="card" style="width: 18rem; margin: 20px;"> \
                       <div class="card-header">'
-        rulesHTML +=   devices[rule.trigger.id]  + '<br>  (' + rule.trigger.param + ' ' + operator[rule.trigger.operator] + ' ' + rule.trigger.value + ')';
+        rulesHTML +=   devices[rule.trigger.id] ? '<b>' + devices[rule.trigger.id] + ' </b> <br>  ' + rule.trigger.param + ' ' + operator[rule.trigger.operator] + ' ' + rule.trigger.value : '<b>Time</b> <br>' + rule.trigger.value;
         rulesHTML += '</div> \
                       <ul class="list-group list-group-flush">';
                       Object(rule.targets).forEach(function(target){
-                        rulesHTML += '<li class="list-group-item" style="margin-left:30px">' + devices[target.id]  + '<br>  (' + target.param + ' = ' + target.value + ')</li>';
+                        rulesHTML += '<li class="list-group-item" style="margin-left:30px"><b>' + devices[target.id]  + '</b><br>  (' + target.param + ' = ' + target.value + ')</li>';
                       });
         rulesHTML +=  '<div class="col" style="vertical-align:top; text-align:right;margin: 10px;"><a href="/cms/rules/edit/?n=' + n + '" class="btn btn-primary">Edit</a></div> \
                       </ul> \
