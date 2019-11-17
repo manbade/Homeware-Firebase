@@ -28,6 +28,7 @@
 
       var rulesHTML = '';
       var n = 0;
+      var rulesKeys = Object.keys(rules);
       Object(rules).forEach(function(rule){
         //Detect the kind of triger (simple or multiple)
         var ruleKeys = Object.keys(rule);
@@ -57,7 +58,7 @@
                       Object(rule.targets).forEach(function(target){
                         rulesHTML += '<li class="list-group-item" style="margin-left:30px"><b>' + devices[target.id]  + '</b><br>  (' + target.param + ' = ' + target.value + ')</li>';
                       });
-        rulesHTML +=  '<div class="col" style="vertical-align:top; text-align:right;margin: 10px;"><a href="/cms/rules/edit/?n=' + n + '" class="btn btn-primary">Edit</a></div> \
+        rulesHTML +=  '<div class="col" style="vertical-align:top; text-align:right;margin: 10px;"><a href="/cms/rules/edit/?n=' + rulesKeys[n] + '" class="btn btn-primary">Edit</a></div> \
                       </ul> \
                     </div>';
         n += 1;

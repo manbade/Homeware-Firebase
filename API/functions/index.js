@@ -371,60 +371,6 @@ app.onExecute((body, headers) => {
 
                 firebaseRef.child(deviceId).update(params);
                 payload.commands[0].states = params;
-
-                /*
-                switch (execCommand) {
-                  case 'action.devices.commands.OnOff':
-                    firebaseRef.child(deviceId).update({
-                      on: params.on,
-                    });
-                    payload.commands[0].states.on = params.on;
-                    break;
-                  case 'action.devices.commands.StartStop':
-                    firebaseRef.child(deviceId).update({
-
-                      isRunning: params.start,
-                    });
-                    payload.commands[0].states.isRunning = params.start;
-                    break;
-                  case 'action.devices.commands.PauseUnpause':
-                    firebaseRef.child(deviceId).update({
-                      isPaused: params.pause,
-                    });
-                    payload.commands[0].states.isPaused = params.pause;
-                    break;
-                  case 'action.devices.commands.BrightnessAbsolute':
-                    firebaseRef.child(deviceId).update({
-                      brightness: params.brightness,
-                    });
-                    payload.commands[0].states.brightness = params.brightness;
-                    break;
-                  case 'action.devices.commands.OpenClose':
-                    firebaseRef.child(deviceId).update({
-                      openPercent: params.openPercent,
-                    });
-                    payload.commands[0].states.openState = params.openPercent;
-                    break;
-                  case 'action.devices.commands.ThermostatTemperatureSetpoint':
-                    firebaseRef.child(deviceId).update({
-                      thermostatTemperatureSetpoint: params.thermostatTemperatureSetpoint,
-                    });
-                    payload.commands[0].states.thermostatTemperatureSetpoint = params.thermostatTemperatureSetpoint;
-                    break;
-                  case 'action.devices.commands.ThermostatSetMode':
-                    firebaseRef.child(deviceId).update({
-                      thermostatMode: params.thermostatMode,
-                    });
-                    payload.commands[0].states.thermostatMode = params.thermostatMode;
-                    break;
-                  case 'action.devices.commands.ColorAbsolute':
-                    firebaseRef.child(deviceId).update({
-                      color: params.color,
-                    });
-                    payload.commands[0].states.color = params.color;
-                    break;
-
-                }*/
               }
             }
           }
@@ -607,4 +553,11 @@ exports.cron = functions.https.onRequest((request, response) => {
 exports.rules = functions.database.ref('/status/').onUpdate(async (change, context) => {
   verifyRules();
   console.log("Done");
+});
+
+exports.apitime = functions.https.onRequest((request, response) => {
+  var d = new Date();
+  var h = d.getHours();
+  var m = d.getMinutes();
+  response.status(200).send(h + ':' + m);
 });
