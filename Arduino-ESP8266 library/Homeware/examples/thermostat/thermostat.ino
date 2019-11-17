@@ -47,7 +47,7 @@ void setup() {
   Serial.println(host);
   //Get access token from the API
   Serial.println(F("Getting token"));
-  api.getToken();
+  api.getToken(false);
 
   if (!bmp.begin()) {
     Serial.println(F("Could not find the sensor, check wiring or I2C address"));
