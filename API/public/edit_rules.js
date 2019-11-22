@@ -28,7 +28,9 @@ rulesRef.on('value', snap => {
       //Show the correct containers
       document.getElementById('target').style.visibility = "visible";
       document.getElementById('deviceTriggeredButton').style.visibility = "hidden";
+      document.getElementById('deviceTriggeredButton').style.width = "0px";
       document.getElementById('timeTriggeredButton').style.visibility = "hidden";
+      document.getElementById('timeTriggeredButton').style.width = "0px";
 
       //Detect the kind of triger (simple or multiple)
       var ruleKeys = Object.keys(rule);
@@ -366,7 +368,9 @@ function changeTriggerType(type){
   document.getElementById('triggerType').value = type;
   document.getElementById('target').style.visibility = "visible";
   document.getElementById('deviceTriggeredButton').style.visibility = "hidden";
+  document.getElementById('deviceTriggeredButton').style.width = "0px";
   document.getElementById('timeTriggeredButton').style.visibility = "hidden";
+  document.getElementById('timeTriggeredButton').style.width = "0px";
 }
 
 ////////////////////////////////////////

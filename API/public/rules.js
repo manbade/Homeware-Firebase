@@ -44,7 +44,7 @@
 
         var operator = [' ', '=', '<', '>'];
         //Rules
-        rulesHTML += '<div class="card" style="width: 18rem; margin: 20px;"> \
+        rulesHTML += '<div class="card cardRule" style="margin-top: 15px;"> \
                       <div class="card-header">'
         var newLine = false;
         triggers.forEach(function(trigger){

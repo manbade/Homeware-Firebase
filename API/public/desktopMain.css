@@ -1,0 +1,11 @@
+/*Responsive*/
+.cardRule{
+  width:18em;
+}
+.cardDevice{
+  width:30%;
+}
+.containerP{
+  margin-top: 20px;
+  max-width: 60%;
+}
