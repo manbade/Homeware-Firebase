@@ -1,6 +1,7 @@
 /*Responsive*/
 .cardRule{
-  width:18em;
+  width:30%;
+  margin-left:3%;
 }
 .cardDevice{
   width:30%;

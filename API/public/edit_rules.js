@@ -52,6 +52,15 @@ rulesRef.on('value', snap => {
           document.getElementById('triggerType').value = 'time';
           document.getElementById('hour').value = time[0];
           document.getElementById('minute').value = time[1];
+          //Verify if weekDays exists
+          var weekDays = time.length == 3 ? time[2] : '';
+          var weekDaysOptions = '';
+          var week = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thuerday', 'Friday', 'Saturday'];
+          for(var i = 0; i < 7; i++){
+            var selected = weekDays.includes(String(i)) ? 'selected' : '';
+            weekDaysOptions += '<option ' + selected + ' value="' + i + '">' + week[i] + '</option>'
+          }
+          document.getElementById('weekDays').innerHTML = weekDaysOptions;
           triggerType = "time";
         } else {
           $('#deviceTriggered').collapse('show');
@@ -184,7 +193,14 @@ save.addEventListener('click', e => {
       rule.triggers = JSON.parse(document.getElementById("availableTriggers").value);
     }
   } else if(triggerType == "time") {
-    var time = document.getElementById("hour").value + ':' + document.getElementById("minute").value;
+    var time = document.getElementById("hour").value + ':' + document.getElementById("minute").value + ':';
+    //Save week days
+    var weekDays = document.getElementById("weekDays");
+    for (var i = 0; i < 7; i++) {
+        if(weekDays[i].selected == true){
+          time += String(i);
+        }
+    }
     rule = {
       trigger: {
         id: "time",
@@ -202,7 +218,6 @@ save.addEventListener('click', e => {
   }
 
   console.log(rule);
-
   //Save the data in the database
   var n = document.getElementById("n").value;
   if (getParameterByName('n')){
@@ -393,7 +408,6 @@ function deleteTrigger(id){
   document.getElementById("availableTriggers").value = JSON.stringify(newTriggers);
   document.getElementById("badge_triggers_container").innerHTML = html
 }
-
 
 function composeTrigger(name, id, param, operator, value){
   var html = "";
