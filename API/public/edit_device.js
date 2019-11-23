@@ -29,6 +29,11 @@ devicesRef.on('value', snap => {
         }
       });
 
+      //Got devices types
+      Object.keys(deviceCoolName).forEach(function(device){
+        document.getElementById('type').innerHTML += '<option value="' + device + '">' + getDeviceCoolName(device) + '</option>';
+      })
+
       //Get device info
       Object(obj).forEach(function(device){
           if (device.id == getParameterByName('id')){
@@ -513,7 +518,6 @@ deleteDevice.addEventListener('click', e => {
 
 });
 
-
 function getParameterByName(name) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
@@ -795,9 +799,9 @@ function updateTraits(deviceTrait){
   Object(tratis[document.getElementById("type").value]).forEach(function(trait){
 
         if(deviceTrait.indexOf(trait) >= 0){
-          html += '<option selected>' + trait + '</option>';
+          html += '<option selected value="' + trait + '">' + getTraitCoolName(trait) + '</option>';
         } else {
-          html += '<option>' + trait + '</option>';
+          html += '<option value="' + trait + '">' + getTraitCoolName(trait) + '</option>';
         }
   });
   document.getElementById("trais").innerHTML = html;

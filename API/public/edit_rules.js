@@ -93,7 +93,13 @@ rulesRef.on('value', snap => {
             var operator = ['','=','<','>','='];
             var triggerHTML = '';
             Object(triggers).forEach(function(trigger){
-              triggerHTML += composeTrigger(devices[trigger.id], trigger.id, trigger.param, operator[trigger.operator], trigger.value)
+              //Device or Device to device triggered
+              var value = trigger.value;
+              if (String(value).includes('>')){
+                var temp = value.split('>');
+                value = '<b>' + devices[temp[0]] + '</b>(' + getParamCoolName(temp[1]) + ')';
+              }
+              triggerHTML += composeTrigger(devices[trigger.id], trigger.id, getParamCoolName(trigger.param), operator[trigger.operator], value)
             });
             badge_triggers_container.innerHTML = triggerHTML;
             document.getElementById("availableTriggers").value = JSON.stringify(triggers);
@@ -103,7 +109,7 @@ rulesRef.on('value', snap => {
           targetId.innerHTML = selectHTML;
           var targetHTML = '';
           Object(rule.targets).forEach(function(target){
-            targetHTML += composeTarget(devices[target.id], target.id, target.param, target.value)
+            targetHTML += composeTarget(devices[target.id], target.id, getParamCoolName(target.param), target.value)
           });
           badge_targets_container.innerHTML = targetHTML;
           document.getElementById("availableTargets").value = JSON.stringify(rule.targets);
@@ -146,7 +152,7 @@ triggerId.addEventListener('change', function(){
     var generalStatus = statusSnap.val();
     var selectHTML = '';
     Object.keys(generalStatus[document.getElementById("triggerId").value]).forEach(function(status){
-      selectHTML += '<option>' + status + '</option>';
+      selectHTML += '<option value="' + status + '">' + getParamCoolName(status) + '</option>';
     });
 
     triggerParam.innerHTML = selectHTML;
@@ -159,7 +165,7 @@ targetId.addEventListener('change', function(){
     var generalStatus = statusSnap.val();
     var selectHTML = '';
     Object.keys(generalStatus[document.getElementById("targetId").value]).forEach(function(status){
-      selectHTML += '<option>' + status + '</option>';
+      selectHTML += '<option value="' + status + '">' + getParamCoolName(status) + '</option>';
     });
 
     targetParam.innerHTML = selectHTML;
@@ -290,7 +296,7 @@ add_triggers_button.addEventListener('click', e => {
       devices[device.id] = device.name.nicknames[0];
     });
     var operator = ['','=','<','>','='];
-    html += composeTrigger(devices[document.getElementById("triggerId").value], document.getElementById("triggerId").value, document.getElementById("triggerParam").value, operator[document.getElementById("triggerOperator").value], document.getElementById("triggerValue").value);
+    html += composeTrigger(devices[document.getElementById("triggerId").value], document.getElementById("triggerId").value, getParamCoolName(document.getElementById("triggerParam").value), operator[document.getElementById("triggerOperator").value], document.getElementById("triggerValue").value);
     document.getElementById("badge_triggers_container").innerHTML += html;
     //Clear form
     document.getElementById("triggerValue").value = "";
@@ -332,7 +338,7 @@ add_targets_button.addEventListener('click', e => {
     Object(devicesSnap.val()).forEach(function(device){
       devices[device.id] = device.name.nicknames[0];
     });
-    html += composeTarget(devices[document.getElementById("targetId").value], document.getElementById("targetId").value, document.getElementById("targetParam").value, document.getElementById("targetValue").value);
+    html += composeTarget(devices[document.getElementById("targetId").value], document.getElementById("targetId").value, getParamCoolName(document.getElementById("targetParam").value), document.getElementById("targetValue").value);
     document.getElementById("badge_targets_container").innerHTML += html;
     //Clear form
     document.getElementById("targetValue").value = "";
@@ -392,31 +398,29 @@ function changeTriggerType(type){
 //Triggers & targets Magic
 ////////////////////////////////////////
 
-function deleteTrigger(id){
+function deleteTrigger(id, param){
   var availableTriggers = JSON.parse(document.getElementById("availableTriggers").value);
   var newTriggers = []
 
-  var html = "";
-  var operator = ['','=','<','>','='];
+  document.getElementById('trigger_' + id + '_' + param).remove();
+
   Object(availableTriggers).forEach(function(trigger){
-    if (trigger.id != id){
-      html += composeTrigger(trigger.id, trigger.id, trigger.param, operator[trigger.operator], trigger.value);
+    if (trigger.id != id && trigger.param != param){
       newTriggers.push(trigger);
     }
   });
 
   document.getElementById("availableTriggers").value = JSON.stringify(newTriggers);
-  document.getElementById("badge_triggers_container").innerHTML = html
 }
 
 function composeTrigger(name, id, param, operator, value){
   var html = "";
-  html += '<div class="col-sm-6" style="margin-top: 10px;">';
+  html += '<div class="col-sm-6" style="margin-top: 10px;" id="trigger_' + id + '_' + param + '">';
     html += '<div class="card">';
       html += '<div class="card-body">';
         html += '<h5 class="card-title">' + name + '</h5>';
         html += '<p>' + param + ' ' + operator + ' ' + value + '</p>';
-        html += '<button type="button" class="btn btn-danger" onclick="deleteTrigger(\'' + id + '\')">Delete</button>';
+        html += '<button type="button" class="btn btn-danger" onclick="deleteTrigger(\'' + id + '\',\'' + param + '\')">Delete</button>';
       html += '</div>';
     html += '</div>';
   html += '</div>';
@@ -424,30 +428,29 @@ function composeTrigger(name, id, param, operator, value){
   return html;
 }
 
-function deleteTarget(id){
+function deleteTarget(id, param){
   var availableTargets = JSON.parse(document.getElementById("availableTargets").value);
   var newTargets = []
 
-  var html = "";
+  document.getElementById('target_' + id + '_' + param).remove();
+
   Object(availableTargets).forEach(function(target){
-    if (target.id != id){
-      html += composeTarget(target.id, target.id, target.param, target.value);
+    if (target.id != id && target.param != param){
       newTargets.push(target);
     }
   });
 
   document.getElementById("availableTargets").value = JSON.stringify(newTargets);
-  document.getElementById("badge_targets_container").innerHTML = html
 }
 
 function composeTarget(name, id, param, value){
   var html = "";
-  html += '<div class="col-sm-6" style="margin-top: 10px;">';
+  html += '<div class="col-sm-6" style="margin-top: 10px;" id="target_' + id + '_' + param + '">';
     html += '<div class="card">';
       html += '<div class="card-body">';
         html += '<h5 class="card-title">' + name + '</h5>';
-        html += '<p>' + param + ': ' + value + '</p>';
-        html += '<button type="button" class="btn btn-danger" onclick="deleteTarget(\'' + id + '\')">Delete</button>';
+        html += '<p>' + param + ' = ' + value + '</p>';
+        html += '<button type="button" class="btn btn-danger" onclick="deleteTarget(\'' + id + '\',\'' + param + '\')">Delete</button>';
       html += '</div>';
     html += '</div>';
   html += '</div>';
