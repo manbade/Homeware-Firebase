@@ -53,7 +53,7 @@
           if(devices[trigger.id]){
             rulesHTML += '<b>' + devices[trigger.id] + '</b>(' + getParamCoolName(trigger.param) + ') ' + operator[trigger.operator] + ' ';
             //Device to device or device to constant
-            if (trigger.value.includes('>')){
+            if (String(trigger.value).includes('>')){
               var secondaryDevice = trigger.value.split('>');
               rulesHTML += '<b>' + devices[secondaryDevice[0]] + '</b>(' + getParamCoolName(secondaryDevice[1]) + ')';
             } else {

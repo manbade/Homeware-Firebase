@@ -518,18 +518,13 @@ function verifyRules(){
         triggers.forEach(function(trigger){
           //Verify device to device
           var value = '';
-          if(typeof trigger.value === 'string'){
-            if (trigger.value.indexOf(">") > 0){
-              console.log('Lo tengo :-)');
-              var id = trigger.value.split('>')[0];
-              var param = trigger.value.split('>')[1];
-              value = status[id][param];
-            } else {
-              value = trigger.value;
-            }
+          if (String(trigger.value).indexOf(">") > 0){
+            var id = trigger.value.split('>')[0];
+            var param = trigger.value.split('>')[1];
+            value = status[id][param];
+          } else {
+            value = trigger.value;
           }
-          console.log(value);
-          console.log(w);
           //Verify operators
           if(trigger.operator == 1 && status[trigger.id][trigger.param] == value){
             verified++; //Equal
