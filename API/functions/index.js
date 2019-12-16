@@ -572,7 +572,7 @@ exports.cron = functions.https.onRequest((request, response) => {
   response.status(200).send("Done");
 });
 
-exports.log = functions.https.onRequest((request, response) => {
+/*exports.log = functions.https.onRequest((request, response) => {
   var params = [{device: 'termostato', param: 'thermostatTemperatureAmbient'}]
 
   admin.database().ref('status').once('value').then(function(statusSnapshot){
@@ -592,7 +592,7 @@ exports.log = functions.https.onRequest((request, response) => {
 
   })
 });
-
+*/
 //Rules execution
 exports.rules = functions.database.ref('/status/').onUpdate(async (change, context) => {
   verifyRules();

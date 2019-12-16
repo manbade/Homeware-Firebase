@@ -42,10 +42,6 @@
         "destination": "/edit_device.html"
       },
       {
-        "source": "/cms/devices/analytics/**",
-        "destination": "/analytics_device.html"
-      },
-      {
         "source": "/cms/rules/",
         "destination": "/rules.html"
       },
