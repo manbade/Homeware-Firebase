@@ -24,7 +24,7 @@ All traits and devices are supported under an experimental function. If you see 
 In order to works, you need to use Firebase service from Google and a hardware device like an ESP8266 or similar. Follow this steps:
 
 1. Deploy the API following the instructions. You can find those inside the API folder.
-2. Connect a piece of hardware. You can use the ESP8266 examples.
+2. Connect a piece of hardware. You can use the ESP8266 examples of the Homeware for ESP8266 library https://github.com/kikeelectronico/Homeware-for-ESP8266.git.
 3. Learn how to create new devices and enjoy.
 
 ## Google guides

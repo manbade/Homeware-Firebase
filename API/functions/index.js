@@ -32,6 +32,7 @@ exports.read = functions.https.onRequest((req, res) =>{
   var param = req.query.param;
   var value = req.query.value;
   var vartype = req.query.vartype;
+  var smartConnection = req.query.smartconnection;
 
   //Change va
   if (vartype == "int"){
@@ -56,17 +57,23 @@ exports.read = functions.https.onRequest((req, res) =>{
       admin.database().ref('/alive/').child(id).update({
         timestamp: current_date,
       });
-      //Save the value
-      if (param){
-        var input_json = {}
-        input_json[param] = value;
-        admin.database().ref('/status/').child(id).update(input_json);
+      if(smartConnection == "true"){
+        //Read smartConnection data and send a response back
+        admin.database().ref('/smartConnection/').child(id).once('value').then(function(snapshot) {
+          res.status(200).json(snapshot.val());
+        });
+      } else {
+        //Save the value
+        if (param){
+          var input_json = {}
+          input_json[param] = value;
+          admin.database().ref('/status/').child(id).update(input_json);
+        }
+        //Read state and send a response back
+        firebaseRef.child(id).once('value').then(function(snapshot) {
+          res.status(200).json(snapshot.val());
+        });
       }
-      //Read state and send a response back
-      firebaseRef.child(id).once('value').then(function(snapshot) {
-        //var status = ";" + snapshot.val() + ";";
-        res.status(200).json(snapshot.val());
-      });
 
     } else { //If the token wasn't correct
       console.log("Hardware used an incorrect access token");
@@ -557,11 +564,33 @@ function verifyRules(){
     });
 }
 
+
 exports.cron = functions.https.onRequest((request, response) => {
   updatestates();
   expireTokens();
   verifyRules();
   response.status(200).send("Done");
+});
+
+exports.log = functions.https.onRequest((request, response) => {
+  var params = [{device: 'termostato', param: 'thermostatTemperatureAmbient'}]
+
+  admin.database().ref('status').once('value').then(function(statusSnapshot){
+    var status = statusSnapshot.val();
+    var time = new Date().getTime();
+    //Loop over all devices needed
+    params.forEach(function(param){
+      var value = status[param.device][param.param];
+      //Save the value into the database
+      admin.database().ref('/').child('paramLog').child(param.device).child(param.param).push({
+        device: param.device,
+        param: param.param,
+        value: value,
+        timestamp: time
+      })
+    });
+
+  })
 });
 
 //Rules execution
