@@ -593,15 +593,17 @@ exports.cron = functions.https.onRequest((request, response) => {
   })
 });
 */
+
 //Rules execution
 exports.rules = functions.database.ref('/status/').onUpdate(async (change, context) => {
   verifyRules();
   console.log("Done");
 });
 
-exports.apitime = functions.https.onRequest((request, response) => {
+exports.clock = functions.https.onRequest((request, response) => {
   var d = new Date();
   var h = d.getHours();
   var m = d.getMinutes();
+  response.set('Access-Control-Allow-Origin', '*');
   response.status(200).send(h + ':' + m);
 });

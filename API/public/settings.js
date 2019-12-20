@@ -60,7 +60,8 @@ save.addEventListener('click', function() {
   document.getElementById('textMessageAlert').innerHTML = '...';
   //Save the data
   database.ref('/settings/strings/').update({
-    codeKey: document.getElementById('codeKey').value
+    codeKey: document.getElementById('codeKey').value,
+    apiClockURL: document.getElementById('apiClockURL').value,
   })
   //Update the text message
   updateMessageWithTime();
@@ -114,6 +115,9 @@ function updateModal(settings){
   } else if (settings == 'codeKey'){
     title = 'Key for authorization code';
     paragraph = 'The authorization code is compose with the device\'s id and the Key for authorization code. <br><br> For example, if the device\'s id is <b><i>"bedroom-light"</i></b> and the key is <b><i>"-code"</i></b> the athorization code will be <b><i>"bedroom-light-code"</i></b>.';
+  } else if (settings == 'apiClockURL'){
+    title = 'The clock\'s URL from your Homeware API';
+    paragraph = 'Go to <i>Functions</i> section in Firebase console. Look for the <i>clock</i> function and copy it\'s URL.';
   }
 
 
