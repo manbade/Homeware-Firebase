@@ -265,7 +265,7 @@ add_time_triggers_button.addEventListener('click', e => {
   //Save week days
   var weekDays = document.getElementById("weekDays");
   for (var i = 0; i < 7; i++) {
-      if(weekDays[i].selected == true){
+      if(document.getElementById("weekDay" + i).checked == true){
         time += String(i);
       }
   }

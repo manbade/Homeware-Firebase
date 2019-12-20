@@ -65,14 +65,48 @@
               </div>
               <hr>
               <div class="form-row">
-                <div class="form-group col-md-2">
+                <div class="form-group col-md-1">
                   <label for="hour">Hour</label>
                   <input type="number" max="23" min="0" class="form-control" id="hour" value="9">
                 </div>
-                <div class="form-group col-md-2">
+                <div class="form-group col-md-1">
                   <label for="minute">Minute</label>
                   <input type="number" max="59" min="0" class="form-control" id="minute" value="25">
                 </div>
+                <div class="form-group col-md-9">
+                  <label for="minute">Week days</label>
+                  <br>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="weekDay0">
+                    <label class="form-check-label" for="weekDay0">Sunday</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="weekDay1">
+                    <label class="form-check-label" for="weekDay1">Monday</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="weekDay2">
+                    <label class="form-check-label" for="weekDay2">Tuesday</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="weekDay3">
+                    <label class="form-check-label" for="weekDay3">Wednesday</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="weekDay4">
+                    <label class="form-check-label" for="weekDay4">Thursday</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="weekDay5">
+                    <label class="form-check-label" for="weekDay5">Friday</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="weekDay6">
+                    <label class="form-check-label" for="weekDay6">Saturday</label>
+                  </div>
+                </div>
+
+              <!--
                 <div class="form-group col-md-3">
                   <label for="weekDays">Week days</label>
                   <select multiple class="custom-select mr-sm-2" id="weekDays">
@@ -85,12 +119,13 @@
                     <option value="6">Saturday</option>
                   </select>
                 </div>
+              -->
                 <div class="form-group col-md-1">
                   <label for="add_arm_levels_button">.</label>
                   <input type="button" class="form-control" id="add_time_triggers_button" value="Add">
                 </div>
               </div>
-              <small id="emailHelp" class="form-text text-muted">Use 24 hour format and GMT time zone. </small>
+              <small id="emailHelp" class="form-text text-muted">Use 24 hour format and verify the API time zone. </small>
             </div>
 
             <div class="container p-3 mb-2 bg-light text-dark" id="target">
