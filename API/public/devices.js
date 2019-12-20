@@ -37,7 +37,7 @@ database.ref('status').on('value', statusSnapshot => {
         }
         //Get OnOff
         var opacity = "0.4";
-        if (status[device.id].on == true){
+        if (status[device.id].on == true || status[device.id].deactivate == false){
           opacity = "1";
         }
         //Online state
