@@ -267,12 +267,12 @@ app.onSync((body, headers) => {
     agent = "google";
 
   //Get the tokens and ids from DDBB
-  return admin.database().ref('/token/').once('value')
+  return admin.database().ref('/token/').child(agent).once('value')
   .then(function(snapshot) {
     var tokenJSON = snapshot.val();
 
     //Verify the token
-    if (token == tokenJSON[agent]["access_token"]["value"]){
+    if (token == tokenJSON["access_token"]["value"]){
       //Get the list of devices in JSON
       return admin.database().ref('/devices/').once('value')
       .then(function(snapshot) {
@@ -306,12 +306,12 @@ app.onQuery((body, headers) => {
     agent = "google";
 
   //Get the tokens and ids from DDBB
-  return admin.database().ref('/token/').once('value')
+  return admin.database().ref('/token/').child(agent).once('value')
   .then(function(snapshot) {
     var tokenJSON = snapshot.val();
 
     //Verify the token
-    if (token == tokenJSON[agent]["access_token"]["value"]){
+    if (token == tokenJSON["access_token"]["value"]){
       //Update online status
       updatestates();
       //Get the list of online status in JSON
@@ -345,12 +345,12 @@ app.onExecute((body, headers) => {
     agent = "google";
 
   //Get the tokens and ids from DDBB
-  return admin.database().ref('/token/').once('value')
+  return admin.database().ref('/token/').child(agent).once('value')
   .then(function(snapshot) {
     var tokenJSON = snapshot.val();
 
     //Verify the accessn token
-    if (token == tokenJSON[agent]["access_token"]["value"]){
+    if (token == tokenJSON["access_token"]["value"]){
       //Get the list of online status in JSON
       return admin.database().ref('/status/').once('value').then(function(snapshot) {
         var statusJSON = snapshot.val();
