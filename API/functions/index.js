@@ -32,6 +32,7 @@ exports.read = functions.https.onRequest((req, res) =>{
   var param = req.query.param;
   var value = req.query.value;
   var vartype = req.query.vartype;
+  var smartConnection = req.query.smartconnection;
 
   //Change va
   if (vartype == "int"){
@@ -56,17 +57,23 @@ exports.read = functions.https.onRequest((req, res) =>{
       admin.database().ref('/alive/').child(id).update({
         timestamp: current_date,
       });
-      //Save the value
-      if (param){
-        var input_json = {}
-        input_json[param] = value;
-        admin.database().ref('/status/').child(id).update(input_json);
+      if(smartConnection == "true"){
+        //Read smartConnection data and send a response back
+        admin.database().ref('/smartConnection/').child(id).once('value').then(function(snapshot) {
+          res.status(200).json(snapshot.val());
+        });
+      } else {
+        //Save the value
+        if (param){
+          var input_json = {}
+          input_json[param] = value;
+          admin.database().ref('/status/').child(id).update(input_json);
+        }
+        //Read state and send a response back
+        firebaseRef.child(id).once('value').then(function(snapshot) {
+          res.status(200).json(snapshot.val());
+        });
       }
-      //Read state and send a response back
-      firebaseRef.child(id).once('value').then(function(snapshot) {
-        //var status = ";" + snapshot.val() + ";";
-        res.status(200).json(snapshot.val());
-      });
 
     } else { //If the token wasn't correct
       console.log("Hardware used an incorrect access token");
@@ -501,6 +508,7 @@ function verifyRules(){
         var d = new Date();
         var h = d.getHours();
         var m = d.getMinutes();
+        var w = d.getDay();
 
         //Detect the kind of triger (simple or multiple)
         var ruleKeys = Object.keys(rule);
@@ -508,28 +516,42 @@ function verifyRules(){
         var verified = 0;
         var triggers = [];
         if (ruleKeys.includes("triggers")){
-          console.log('yes');
           amountRules = Object.keys(rule.triggers).length;
           triggers = rule.triggers;
         } else {
-          console.log('no');
           triggers.push(rule.trigger);
         }
-        console.log(amountRules);
 
         triggers.forEach(function(trigger){
-          //Verify operators
-          if(trigger.operator == 1 && status[trigger.id][trigger.param] == trigger.value){
-            verified++; //Equal
-          } else if(trigger.operator == 2 && status[trigger.id][trigger.param] < trigger.value){
-            verified++; //General less than
-          } else if(trigger.operator == 3 && status[trigger.id][trigger.param] > trigger.value){
-            verified++; //General greather than
-          } else if(trigger.operator == 4 && h == parseInt(trigger.value.split(':')[0], 10) && m == parseInt(trigger.value.split(':')[1], 10)){
-            verified++; //Time greather than
+          //Verify device to device
+          var value = '';
+          if (String(trigger.value).indexOf(">") > 0){
+            var id = trigger.value.split('>')[0];
+            var param = trigger.value.split('>')[1];
+            value = status[id][param];
+          } else {
+            value = trigger.value;
           }
+          //Verify operators
+          if(trigger.operator == 1 && status[trigger.id][trigger.param] == value){
+            verified++; //Equal
+          } else if(trigger.operator == 2 && status[trigger.id][trigger.param] < value){
+            verified++; //General less than
+          } else if(trigger.operator == 3 && status[trigger.id][trigger.param] > value){
+            verified++; //General greather than
+          } else if(trigger.operator == 4 && h == parseInt(value.split(':')[0], 10) && m == parseInt(value.split(':')[1], 10)){
+            if(value.split(':').length == 3){
+              if(value.split(':')[2].includes(String(w))){
+                verified++; //Time greather than
+              }
+            } else {
+              verified++; //Time greather than
+            }
+
+          }
+
         });
-        console.log(verified);
+
         if(verified == amountRules){
 
           Object(rule.targets).forEach(function(target){
@@ -542,6 +564,7 @@ function verifyRules(){
     });
 }
 
+
 exports.cron = functions.https.onRequest((request, response) => {
   updatestates();
   expireTokens();
@@ -549,15 +572,38 @@ exports.cron = functions.https.onRequest((request, response) => {
   response.status(200).send("Done");
 });
 
+/*exports.log = functions.https.onRequest((request, response) => {
+  var params = [{device: 'termostato', param: 'thermostatTemperatureAmbient'}]
+
+  admin.database().ref('status').once('value').then(function(statusSnapshot){
+    var status = statusSnapshot.val();
+    var time = new Date().getTime();
+    //Loop over all devices needed
+    params.forEach(function(param){
+      var value = status[param.device][param.param];
+      //Save the value into the database
+      admin.database().ref('/').child('paramLog').child(param.device).child(param.param).push({
+        device: param.device,
+        param: param.param,
+        value: value,
+        timestamp: time
+      })
+    });
+
+  })
+});
+*/
+
 //Rules execution
 exports.rules = functions.database.ref('/status/').onUpdate(async (change, context) => {
   verifyRules();
   console.log("Done");
 });
 
-exports.apitime = functions.https.onRequest((request, response) => {
+exports.clock = functions.https.onRequest((request, response) => {
   var d = new Date();
   var h = d.getHours();
   var m = d.getMinutes();
+  response.set('Access-Control-Allow-Origin', '*');
   response.status(200).send(h + ':' + m);
 });

@@ -17,4 +17,13 @@ function loadNavbar(){
 
 function loadHead(){
   document.head.innerHTML += this.responseText;
+  if(isMobileDevice()){
+    document.head.innerHTML += '<link rel="stylesheet" type="text/css" href="/mobileMain.css">';
+  } else {
+    document.head.innerHTML +='<link rel="stylesheet" type="text/css" href="/desktopMain.css">';
+  }
 }
+
+function isMobileDevice() {
+    return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+};

@@ -15,6 +15,7 @@ var aliveRef = firebase.database().ref().child('alive');
 var tokensRef = firebase.database().ref().child('token');
 var devicesRef = firebase.database().ref().child('devices');
 var rulesRef = firebase.database().ref('rules');
+var settingsRef = firebase.database().ref('settings');
 
 
 rulesRef.on('value', snap => {
@@ -25,10 +26,6 @@ rulesRef.on('value', snap => {
       var triggerType = "device";
       //Get the vector index
       document.getElementById("n").value = getParameterByName("n");
-      //Show the correct containers
-      document.getElementById('target').style.visibility = "visible";
-      document.getElementById('deviceTriggeredButton').style.visibility = "hidden";
-      document.getElementById('timeTriggeredButton').style.visibility = "hidden";
 
       //Detect the kind of triger (simple or multiple)
       var ruleKeys = Object.keys(rule);
@@ -43,19 +40,6 @@ rulesRef.on('value', snap => {
         document.getElementById('triggerType').value = 'device';
       } else {
         triggers.push(rule.trigger);
-        //Show the correct container
-        if (rule.trigger.id == "time"){
-          $('#timeTriggered').collapse('show');
-          var time = rule.trigger.value.split(':');
-          document.getElementById('triggerType').value = 'time';
-          document.getElementById('hour').value = time[0];
-          document.getElementById('minute').value = time[1];
-          triggerType = "time";
-        } else {
-          $('#deviceTriggered').collapse('show');
-          document.getElementById('triggerType').value = 'device';
-
-        }
       }
 
       //Read the status for the relations between id and params
@@ -77,22 +61,29 @@ rulesRef.on('value', snap => {
           });
 
           //Create the triggers by device
-          if(triggerType == "device"){
-            triggerId.innerHTML = selectHTML;
-            var operator = ['','=','<','>','='];
-            var triggerHTML = '';
-            Object(triggers).forEach(function(trigger){
-              triggerHTML += composeTrigger(devices[trigger.id], trigger.id, trigger.param, operator[trigger.operator], trigger.value)
-            });
-            badge_triggers_container.innerHTML = triggerHTML;
-            document.getElementById("availableTriggers").value = JSON.stringify(triggers);
-          }
+          triggerId.innerHTML = selectHTML;
+          var operator = ['','=','<','>','='];
+          var triggerHTML = '';
+          Object(triggers).forEach(function(trigger){
+            //Device or Device to device triggered
+            var value = trigger.value;
+            if (String(value).includes('>')){
+              var temp = value.split('>');
+              value = '<b>' + devices[temp[0]] + '</b>(' + getParamCoolName(temp[1]) + ')';
+            }
+            if(trigger.id == 'time')
+              triggerHTML += composeTimeTrigger(trigger.value);
+            else
+              triggerHTML += composeTrigger(devices[trigger.id], trigger.id, getParamCoolName(trigger.param), operator[trigger.operator], value)
+          });
+          badge_triggers_container.innerHTML = triggerHTML;
+          document.getElementById("availableTriggers").value = JSON.stringify(triggers);
 
           //Create the targets
           targetId.innerHTML = selectHTML;
           var targetHTML = '';
           Object(rule.targets).forEach(function(target){
-            targetHTML += composeTarget(devices[target.id], target.id, target.param, target.value)
+            targetHTML += composeTarget(devices[target.id], target.id, getParamCoolName(target.param), target.value)
           });
           badge_targets_container.innerHTML = targetHTML;
           document.getElementById("availableTargets").value = JSON.stringify(rule.targets);
@@ -135,7 +126,7 @@ triggerId.addEventListener('change', function(){
     var generalStatus = statusSnap.val();
     var selectHTML = '';
     Object.keys(generalStatus[document.getElementById("triggerId").value]).forEach(function(status){
-      selectHTML += '<option>' + status + '</option>';
+      selectHTML += '<option value="' + status + '">' + getParamCoolName(status) + '</option>';
     });
 
     triggerParam.innerHTML = selectHTML;
@@ -148,7 +139,7 @@ targetId.addEventListener('change', function(){
     var generalStatus = statusSnap.val();
     var selectHTML = '';
     Object.keys(generalStatus[document.getElementById("targetId").value]).forEach(function(status){
-      selectHTML += '<option>' + status + '</option>';
+      selectHTML += '<option value="' + status + '">' + getParamCoolName(status) + '</option>';
     });
 
     targetParam.innerHTML = selectHTML;
@@ -158,40 +149,24 @@ targetId.addEventListener('change', function(){
 
 save.addEventListener('click', e => {
   var rule = {};
-  var triggerType = document.getElementById("triggerType").value;
-  console.log(triggerType);
-  //Verify the trigger type
-  if(triggerType == "device"){
-    //Analise the value
-    var value = document.getElementById("triggerValue").value;
-    var num = ["0","1","2","3","4","5","6","7","8","9"];
-    if (value == "true"){
-      value = true;
-    } else if (value == "false") {
-      value = false;
-    } else if (num.indexOf(value[0]) >= 0) {
-      value = parseInt(value);
-    }
-    //Compose JSON
-    rule = {
-      triggers: [],
-      targets: []
-    }
-    //Get triggers JSON
-    if (document.getElementById("availableTriggers").value != "-1"){
-      rule.triggers = JSON.parse(document.getElementById("availableTriggers").value);
-    }
-  } else if(triggerType == "time") {
-    var time = document.getElementById("hour").value + ':' + document.getElementById("minute").value;
-    rule = {
-      trigger: {
-        id: "time",
-        operator: "4",
-        param: "time",
-        value: time
-      },
-      targets: []
-    }
+  //Analise the value
+  var value = document.getElementById("triggerValue").value;
+  var num = ["0","1","2","3","4","5","6","7","8","9"];
+  if (value == "true"){
+    value = true;
+  } else if (value == "false") {
+    value = false;
+  } else if (num.indexOf(value[0]) >= 0) {
+    value = parseInt(value);
+  }
+  //Compose JSON
+  rule = {
+    triggers: [],
+    targets: []
+  }
+  //Get triggers JSON
+  if (document.getElementById("availableTriggers").value != "-1"){
+    rule.triggers = JSON.parse(document.getElementById("availableTriggers").value);
   }
 
   //Get targets JSON
@@ -200,7 +175,6 @@ save.addEventListener('click', e => {
   }
 
   console.log(rule);
-
   //Save the data in the database
   var n = document.getElementById("n").value;
   if (getParameterByName('n')){
@@ -273,13 +247,52 @@ add_triggers_button.addEventListener('click', e => {
       devices[device.id] = device.name.nicknames[0];
     });
     var operator = ['','=','<','>','='];
-    html += composeTrigger(devices[document.getElementById("triggerId").value], document.getElementById("triggerId").value, document.getElementById("triggerParam").value, operator[document.getElementById("triggerOperator").value], document.getElementById("triggerValue").value);
+    html += composeTrigger(devices[document.getElementById("triggerId").value], document.getElementById("triggerId").value, getParamCoolName(document.getElementById("triggerParam").value), operator[document.getElementById("triggerOperator").value], document.getElementById("triggerValue").value);
     document.getElementById("badge_triggers_container").innerHTML += html;
     //Clear form
     document.getElementById("triggerValue").value = "";
   });
+});
 
+add_time_triggers_button.addEventListener('click', e => {
+  //Get lasst JSON
+  var availableTriggers = [];
+  if (document.getElementById("availableTriggers").value != "-1"){
+    availableTriggers = JSON.parse(document.getElementById("availableTriggers").value);
+  }
+  //Create the new JSON
+  var time = document.getElementById("hour").value + ':' + document.getElementById("minute").value + ':';
+  //Save week days
+  var weekDays = document.getElementById("weekDays");
+  for (var i = 0; i < 7; i++) {
+      if(document.getElementById("weekDay" + i).checked == true){
+        time += String(i);
+      }
+  }
+  var newTrigger = {
+    id: "time",
+    operator: "4",
+    param: "time",
+    value: time
+  }
 
+  availableTriggers.push(newTrigger);
+  document.getElementById("availableTriggers").value = JSON.stringify(availableTriggers);
+  console.log(availableTriggers);
+  //Create the new HTML card
+  var html = "";
+  devicesRef.once('value', devicesSnap => {
+    var devices = {};
+    //Get a relation between id and names
+    Object(devicesSnap.val()).forEach(function(device){
+      devices[device.id] = device.name.nicknames[0];
+    });
+    html += composeTimeTrigger(time);
+    document.getElementById("badge_triggers_container").innerHTML += html;
+    //Clear form
+    document.getElementById("hour").value = 9
+    document.getElementById("minute").value = 25;
+  });
 });
 
 add_targets_button.addEventListener('click', e => {
@@ -315,7 +328,7 @@ add_targets_button.addEventListener('click', e => {
     Object(devicesSnap.val()).forEach(function(device){
       devices[device.id] = device.name.nicknames[0];
     });
-    html += composeTarget(devices[document.getElementById("targetId").value], document.getElementById("targetId").value, document.getElementById("targetParam").value, document.getElementById("targetValue").value);
+    html += composeTarget(devices[document.getElementById("targetId").value], document.getElementById("targetId").value, getParamCoolName(document.getElementById("targetParam").value), document.getElementById("targetValue").value);
     document.getElementById("badge_targets_container").innerHTML += html;
     //Clear form
     document.getElementById("targetValue").value = "";
@@ -324,9 +337,9 @@ add_targets_button.addEventListener('click', e => {
 
 });
 
-deleteDevice.addEventListener('click', e => {
+deleteRule.addEventListener('click', e => {
 
-  if (confirm("Do you want to delete the device?")){
+  if (confirm("Do you want to delete the rule?")){
     var n = document.getElementById("n").value;
     var html = "";
     rulesRef.child(n).remove()
@@ -362,43 +375,59 @@ deleteDevice.addEventListener('click', e => {
 
 });
 
-function changeTriggerType(type){
-  document.getElementById('triggerType').value = type;
-  document.getElementById('target').style.visibility = "visible";
-  document.getElementById('deviceTriggeredButton').style.visibility = "hidden";
-  document.getElementById('timeTriggeredButton').style.visibility = "hidden";
+window.onload = function() {
+  loadApiTime();
+  setInterval(loadApiTime, 30000);
+};
+
+function loadApiTime(){
+  settingsRef.on('value', snap => {
+    apiClockURL = snap.val().strings.apiClockURL;
+
+    if(apiClockURL){
+      var clock = new XMLHttpRequest();
+      clock.addEventListener('load', showApiClock);
+      clock.open('GET', apiClockURL);
+      clock.send();
+    } else {
+      document.getElementById('apiClock').innerHTML = "See here your API's clock. Configure the URL from Settings."
+    }
+  })
+
+
+}
+
+function showApiClock(){
+  document.getElementById('apiClock').innerHTML =  "Homeware's API time " + this.responseText;
 }
 
 ////////////////////////////////////////
 //Triggers & targets Magic
 ////////////////////////////////////////
 
-function deleteTrigger(id){
+function deleteTrigger(id, param){
   var availableTriggers = JSON.parse(document.getElementById("availableTriggers").value);
   var newTriggers = []
 
-  var html = "";
-  var operator = ['','=','<','>','='];
+  document.getElementById('trigger_' + id + '_' + param).remove();
+
   Object(availableTriggers).forEach(function(trigger){
-    if (trigger.id != id){
-      html += composeTrigger(trigger.id, trigger.id, trigger.param, operator[trigger.operator], trigger.value);
+    if (trigger.id != id && trigger.param != param){
       newTriggers.push(trigger);
     }
   });
 
   document.getElementById("availableTriggers").value = JSON.stringify(newTriggers);
-  document.getElementById("badge_triggers_container").innerHTML = html
 }
-
 
 function composeTrigger(name, id, param, operator, value){
   var html = "";
-  html += '<div class="col-sm-6" style="margin-top: 10px;">';
+  html += '<div class="col-sm-6" style="margin-top: 10px;" id="trigger_' + id + '_' + param + '">';
     html += '<div class="card">';
       html += '<div class="card-body">';
         html += '<h5 class="card-title">' + name + '</h5>';
         html += '<p>' + param + ' ' + operator + ' ' + value + '</p>';
-        html += '<button type="button" class="btn btn-danger" onclick="deleteTrigger(\'' + id + '\')">Delete</button>';
+        html += '<button type="button" class="btn btn-danger" onclick="deleteTrigger(\'' + id + '\',\'' + param + '\')">Delete</button>';
       html += '</div>';
     html += '</div>';
   html += '</div>';
@@ -406,30 +435,66 @@ function composeTrigger(name, id, param, operator, value){
   return html;
 }
 
-function deleteTarget(id){
+function deleteTimeTrigger(time){
+  var availableTriggers = JSON.parse(document.getElementById("availableTriggers").value);
+  var newTriggers = []
+
+  document.getElementById('trigger_' + time).remove();
+
+  Object(availableTriggers).forEach(function(trigger){
+    if (trigger.value != time){
+      newTriggers.push(trigger);
+    }
+  });
+
+  document.getElementById("availableTriggers").value = JSON.stringify(newTriggers);
+}
+
+function composeTimeTrigger(time){
+  var timeSplited = time.split(':');
+  var html = "";
+  html += '<div class="col-sm-6" style="margin-top: 10px;" id="trigger_' + time  + '">';
+    html += '<div class="card">';
+      html += '<div class="card-body">';
+        html += '<h5 class="card-title">' + timeSplited[0] + ':' + timeSplited[1] + '</h5>';
+        html += '<p>';
+        var week = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        for(var i = 0; i < 7; i++){
+          if (timeSplited[2].includes(i))
+            html += week[i] + ' ';
+        }
+        html += '</p>';
+        html += '<button type="button" class="btn btn-danger" onclick="deleteTimeTrigger(\'' + time + '\')">Delete</button>';
+      html += '</div>';
+    html += '</div>';
+  html += '</div>';
+
+  return html;
+}
+
+function deleteTarget(id, param){
   var availableTargets = JSON.parse(document.getElementById("availableTargets").value);
   var newTargets = []
 
-  var html = "";
+  document.getElementById('target_' + id + '_' + param).remove();
+
   Object(availableTargets).forEach(function(target){
-    if (target.id != id){
-      html += composeTarget(target.id, target.id, target.param, target.value);
+    if (target.id != id && target.param != param){
       newTargets.push(target);
     }
   });
 
   document.getElementById("availableTargets").value = JSON.stringify(newTargets);
-  document.getElementById("badge_targets_container").innerHTML = html
 }
 
 function composeTarget(name, id, param, value){
   var html = "";
-  html += '<div class="col-sm-6" style="margin-top: 10px;">';
+  html += '<div class="col-sm-6" style="margin-top: 10px;" id="target_' + id + '_' + param + '">';
     html += '<div class="card">';
       html += '<div class="card-body">';
         html += '<h5 class="card-title">' + name + '</h5>';
-        html += '<p>' + param + ': ' + value + '</p>';
-        html += '<button type="button" class="btn btn-danger" onclick="deleteTarget(\'' + id + '\')">Delete</button>';
+        html += '<p>' + param + ' = ' + value + '</p>';
+        html += '<button type="button" class="btn btn-danger" onclick="deleteTarget(\'' + id + '\',\'' + param + '\')">Delete</button>';
       html += '</div>';
     html += '</div>';
   html += '</div>';

@@ -14,9 +14,10 @@ var statusRef = firebase.database().ref().child('status');
 var aliveRef = firebase.database().ref().child('alive');
 var tokensRef = firebase.database().ref().child('token');
 var devicesRef = firebase.database().ref().child('devices');
+var smartConnectionRef = firebase.database().ref().child('smartConnection');
 
 devicesRef.on('value', snap => {
-    //hello();
+
     var obj = snap.val();
     //Find device index
     try{
@@ -28,6 +29,11 @@ devicesRef.on('value', snap => {
             document.getElementById("n").value = n;
         }
       });
+
+      //Got devices types
+      Object.keys(deviceCoolName).forEach(function(device){
+        document.getElementById('type').innerHTML += '<option value="' + device + '">' + getDeviceCoolName(device) + '</option>';
+      })
 
       //Get device info
       Object(obj).forEach(function(device){
@@ -42,6 +48,15 @@ devicesRef.on('value', snap => {
               document.getElementById("model").value = device.deviceInfo.model;
             }
             document.getElementById("name").value = device.name.name;
+            //Show smartConnection data
+            smartConnectionRef.child(device.id).once("value", snap =>{
+              var smartConnectionData = snap.val();
+              Object.keys(smartConnectionData.delay).forEach(function(h){
+                document.getElementById(h + "h").value = smartConnectionData.delay[h];
+              });
+              document.getElementById("updateTime").value = smartConnectionData.update;
+            });
+
             //Show traits
             updateTraits(device.traits);
             updateThermostatModes([]);
@@ -446,6 +461,17 @@ save.addEventListener('click', e => {
     online: online
   });
 
+  //Save the Smart Connection data
+  var delay = new Array();
+  for(var i = 0; i < 24; i++){
+    delay[i] = parseInt(document.getElementById(i + "h").value);
+  }
+
+  smartConnectionRef.child(document.getElementById("id").value).update({
+    delay: delay,
+    update: document.getElementById("updateTime").value
+  });
+
 
 
   if (device.id == getParameterByName('id')){
@@ -512,7 +538,6 @@ deleteDevice.addEventListener('click', e => {
 
 
 });
-
 
 function getParameterByName(name) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -795,9 +820,9 @@ function updateTraits(deviceTrait){
   Object(tratis[document.getElementById("type").value]).forEach(function(trait){
 
         if(deviceTrait.indexOf(trait) >= 0){
-          html += '<option selected>' + trait + '</option>';
+          html += '<option selected value="' + trait + '">' + getTraitCoolName(trait) + '</option>';
         } else {
-          html += '<option>' + trait + '</option>';
+          html += '<option value="' + trait + '">' + getTraitCoolName(trait) + '</option>';
         }
   });
   document.getElementById("trais").innerHTML = html;

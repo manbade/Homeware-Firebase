@@ -44,19 +44,40 @@
 
         var operator = [' ', '=', '<', '>'];
         //Rules
-        rulesHTML += '<div class="card" style="width: 18rem; margin: 20px;"> \
+        rulesHTML += '<div class="card cardRule" style="margin-top: 15px;"> \
                       <div class="card-header">'
         var newLine = false;
         triggers.forEach(function(trigger){
-          rulesHTML += newLine ? '<br>' : '';
-          rulesHTML += devices[trigger.id] ? '<b>' + devices[trigger.id] + ':</b> ' + trigger.param + ' ' + operator[trigger.operator] + ' ' + trigger.value : '<b>Time</b> <br>' + trigger.value;
+          rulesHTML += newLine ? '<hr>' : '';
+          //Device or time triggered
+          if(devices[trigger.id]){
+            rulesHTML += '<b>' + devices[trigger.id] + '</b>(' + getParamCoolName(trigger.param) + ') ' + operator[trigger.operator] + ' ';
+            //Device to device or device to constant
+            if (String(trigger.value).includes('>')){
+              var secondaryDevice = trigger.value.split('>');
+              rulesHTML += '<b>' + devices[secondaryDevice[0]] + '</b>(' + getParamCoolName(secondaryDevice[1]) + ')';
+            } else {
+              rulesHTML += trigger.value;
+            }
+          } else {
+            rulesHTML += '<b>Time</b> <br>';
+            var time = trigger.value.split(':');
+            rulesHTML += putZero(time[0]) + ':' + putZero(time[1]) + '    ';
+            //Week days
+            var weekDays = time.length == 3 ? time[2] : '';
+            var week = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            for(var i = 0; i < 7; i++){
+              if (weekDays.includes(i))
+                rulesHTML += week[i] + ' ';
+            }
+          }
           newLine = true;
         });
 
         rulesHTML += '</div> \
                       <ul class="list-group list-group-flush">';
                       Object(rule.targets).forEach(function(target){
-                        rulesHTML += '<li class="list-group-item" style="margin-left:30px"><b>' + devices[target.id]  + '</b><br>  (' + target.param + ' = ' + target.value + ')</li>';
+                        rulesHTML += '<li class="list-group-item" style="margin-left:30px"><b>' + devices[target.id]  + '</b>(' + getParamCoolName(target.param) + ') = ' + target.value + '</li>';
                       });
         rulesHTML +=  '<div class="col" style="vertical-align:top; text-align:right;margin: 10px;"><a href="/cms/rules/edit/?n=' + rulesKeys[n] + '" class="btn btn-primary">Edit</a></div> \
                       </ul> \

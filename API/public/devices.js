@@ -37,7 +37,7 @@ database.ref('status').on('value', statusSnapshot => {
         }
         //Get OnOff
         var opacity = "0.4";
-        if (status[device.id].on == true){
+        if (status[device.id].on == true || status[device.id].deactivate == false){
           opacity = "1";
         }
         //Online state
@@ -49,7 +49,7 @@ database.ref('status').on('value', statusSnapshot => {
         }
         //Scenes & devices
         if (device.traits[0] == 'action.devices.traits.Scene'){
-          scenesHTML += '<div class="card" style="width: 30%; margin-bottom: 15px; margin-right: 3%;">';
+          scenesHTML += '<div class="card cardDevice" style="margin-bottom: 15px; margin-right: 3%;">';
             scenesHTML += '<div class="colorRectangle" style="background-color:#' + color + '; opacity:' + opacity + '"></div>';
             scenesHTML += '<div class="card-body">';
               scenesHTML += '<div class="grid" style="margin-bottom:10px;">';
@@ -96,7 +96,7 @@ database.ref('status').on('value', statusSnapshot => {
             alert = '<br><br><a onclick="authorize(\'' + device.id + '\')" class="btn btn-danger" style="color:white;" title="The devie ask for autorization to connect.">Authorize</a>';
           }
 
-          html += '<div class="card" style="width: 30%; margin-bottom: 15px; margin-right: 3%;">';
+          html += '<div class="card cardDevice" style="margin-bottom: 15px; margin-right: 3%;">';
             html += '<div class="colorRectangle" style="background-color:#' + color + '; opacity:' + opacity + '"></div>';
             html += '<div class="card-body">';
               html += '<div class="grid" style="margin-bottom:10px;">';
