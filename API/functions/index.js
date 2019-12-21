@@ -46,12 +46,12 @@ exports.read = functions.https.onRequest((req, res) =>{
   }
 
   //Get tokenJSON from DDBB
-  admin.database().ref('/token/').once('value')
+  admin.database().ref('/token/').child(agent).once('value')
   .then(function(snapshot) {
     var tokenJSON = snapshot.val();
 
     //Verify the token
-    if (token == tokenJSON[agent]["access_token"]["value"]){
+    if (token == tokenJSON["access_token"]["value"]){
       //Save the new timestamp
       var current_date = new Date().getTime();
       admin.database().ref('/alive/').child(id).update({
@@ -564,7 +564,7 @@ function verifyRules(){
     });
 }
 
-
+//Cloud scheduler endpoint
 exports.cron = functions.https.onRequest((request, response) => {
   updatestates();
   expireTokens();
@@ -600,6 +600,7 @@ exports.rules = functions.database.ref('/status/').onUpdate(async (change, conte
   console.log("Done");
 });
 
+//API time
 exports.clock = functions.https.onRequest((request, response) => {
   var d = new Date();
   var h = d.getHours();
