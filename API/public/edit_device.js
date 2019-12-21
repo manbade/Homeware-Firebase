@@ -14,6 +14,7 @@ var statusRef = firebase.database().ref().child('status');
 var aliveRef = firebase.database().ref().child('alive');
 var tokensRef = firebase.database().ref().child('token');
 var devicesRef = firebase.database().ref().child('devices');
+var settingsRef = firebase.database().ref().child('settings');
 var smartConnectionRef = firebase.database().ref().child('smartConnection');
 
 devicesRef.on('value', snap => {
@@ -447,12 +448,36 @@ save.addEventListener('click', e => {
     aliveRef.child(document.getElementById("id").value).update({
       timestamp: current_date,
     });
-    //Save the authorization_code
-    var code = document.getElementById("id").value + "-code";
-    tokensRef.child(document.getElementById("id").value).update({
-      authorization_code: {
-        value: code
+    //Save the authorization_code if needed
+    settingsRef.on('value', snap => {
+      var settings = snap.val();
+      var code = "";
+      if (settings.bools){
+        if (settings.bools.autoAuthentication == true){
+          code = document.getElementById("id").value + settings.strings.codeKey;
+        } else {
+          code = Math.random()*1000;
+        }
+      } else {
+        code = document.getElementById("id").value + "-code";
       }
+
+
+      tokensRef.child(document.getElementById("id").value).update({
+        authorization_code: {
+          value: code
+        }
+      });
+    })
+    //Save the Smart Connection data
+    var delay = new Array();
+    for(var i = 0; i < 24; i++){
+      delay[i] = parseInt(document.getElementById(i + "h").value);
+    }
+
+    smartConnectionRef.child(document.getElementById("id").value).update({
+      delay: delay,
+      update: document.getElementById("updateTime").value
     });
   }
 
@@ -460,19 +485,6 @@ save.addEventListener('click', e => {
   statusRef.child(document.getElementById("id").value).update({
     online: online
   });
-
-  //Save the Smart Connection data
-  var delay = new Array();
-  for(var i = 0; i < 24; i++){
-    delay[i] = parseInt(document.getElementById(i + "h").value);
-  }
-
-  smartConnectionRef.child(document.getElementById("id").value).update({
-    delay: delay,
-    update: document.getElementById("updateTime").value
-  });
-
-
 
   if (device.id == getParameterByName('id')){
     //Make alert show up
@@ -482,7 +494,7 @@ save.addEventListener('click', e => {
         $("#savedAlert").remove();
       }, 5000);
   } else {
-    window.location.href = "/cms/devices/";
+    //window.location.href = "/cms/devices/";
   }
 });
 
@@ -510,6 +522,7 @@ deleteDevice.addEventListener('click', e => {
             statusRef.child(id).remove();
             tokensRef.child(id).remove();
             aliveRef.child(id).remove();
+            smartConnectionRef.child(id).remove();
             console.log(obj);
             window.location.href = "/cms/devices/";
           })
