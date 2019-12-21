@@ -176,16 +176,16 @@ exports.token = functions.https.onRequest((request, response) => {
 
   //Get the tokens and ids from DDBB
   var tokenJSON
-  admin.database().ref('/token/').once('value')
+  admin.database().ref('/token/').child(agent).once('value')
   .then(function(snapshot) {
     tokenJSON = snapshot.val();
-    return admin.database().ref('/settings/').once('value');
+    return admin.database().ref('/settings/bools/').once('value');
   })
   .then(function(settingsSnapshot) {
     var settingsJSON = settingsSnapshot.val();
 
     //Verify the code
-    if (code == tokenJSON[agent][grantType]["value"]){
+    if (code == tokenJSON[grantType]["value"]){
 
       //Tokens lifetime
       const secondsInDay = 86400;
