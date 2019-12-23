@@ -46,12 +46,12 @@ exports.read = functions.https.onRequest((req, res) =>{
   }
 
   //Get tokenJSON from DDBB
-  admin.database().ref('/token/').once('value')
+  admin.database().ref('/token/').child(id).once('value')
   .then(function(snapshot) {
     var tokenJSON = snapshot.val();
 
     //Verify the token
-    if (token == tokenJSON[agent]["access_token"]["value"]){
+    if (token == tokenJSON["access_token"]["value"]){
       //Save the new timestamp
       var current_date = new Date().getTime();
       admin.database().ref('/alive/').child(id).update({
@@ -176,16 +176,16 @@ exports.token = functions.https.onRequest((request, response) => {
 
   //Get the tokens and ids from DDBB
   var tokenJSON
-  admin.database().ref('/token/').once('value')
+  admin.database().ref('/token/').child(agent).once('value')
   .then(function(snapshot) {
     tokenJSON = snapshot.val();
-    return admin.database().ref('/settings/').once('value');
+    return admin.database().ref('/settings/bools/').once('value');
   })
   .then(function(settingsSnapshot) {
     var settingsJSON = settingsSnapshot.val();
 
     //Verify the code
-    if (code == tokenJSON[agent][grantType]["value"]){
+    if (code == tokenJSON[grantType]["value"]){
 
       //Tokens lifetime
       const secondsInDay = 86400;
@@ -267,12 +267,12 @@ app.onSync((body, headers) => {
     agent = "google";
 
   //Get the tokens and ids from DDBB
-  return admin.database().ref('/token/').once('value')
+  return admin.database().ref('/token/').child(agent).once('value')
   .then(function(snapshot) {
     var tokenJSON = snapshot.val();
 
     //Verify the token
-    if (token == tokenJSON[agent]["access_token"]["value"]){
+    if (token == tokenJSON["access_token"]["value"]){
       //Get the list of devices in JSON
       return admin.database().ref('/devices/').once('value')
       .then(function(snapshot) {
@@ -306,12 +306,12 @@ app.onQuery((body, headers) => {
     agent = "google";
 
   //Get the tokens and ids from DDBB
-  return admin.database().ref('/token/').once('value')
+  return admin.database().ref('/token/').child(agent).once('value')
   .then(function(snapshot) {
     var tokenJSON = snapshot.val();
 
     //Verify the token
-    if (token == tokenJSON[agent]["access_token"]["value"]){
+    if (token == tokenJSON["access_token"]["value"]){
       //Update online status
       updatestates();
       //Get the list of online status in JSON
@@ -345,12 +345,12 @@ app.onExecute((body, headers) => {
     agent = "google";
 
   //Get the tokens and ids from DDBB
-  return admin.database().ref('/token/').once('value')
+  return admin.database().ref('/token/').child(agent).once('value')
   .then(function(snapshot) {
     var tokenJSON = snapshot.val();
 
     //Verify the accessn token
-    if (token == tokenJSON[agent]["access_token"]["value"]){
+    if (token == tokenJSON["access_token"]["value"]){
       //Get the list of online status in JSON
       return admin.database().ref('/status/').once('value').then(function(snapshot) {
         var statusJSON = snapshot.val();
@@ -493,78 +493,97 @@ function expireTokens(){
 
 }
 
+//Rules cache
+var cache = {
+  timestamp: 0,
+  rules: []
+};
+var chacheUpdateInterval = 3600000;
+
 //Verify rules
 function verifyRules(){
   var status = {}
   admin.database().ref('/status/').once('value')
     .then(function(statusSnapshot){
       status = statusSnapshot.val();
-      return admin.database().ref('/rules/').once('value')
-    })
-    .then(function(rulesSnap) {
-      var rules = rulesSnap.val();
-      Object(rules).forEach(function(rule){
-        //Time
-        var d = new Date();
-        var h = d.getHours();
-        var m = d.getMinutes();
-        var w = d.getDay();
-
-        //Detect the kind of triger (simple or multiple)
-        var ruleKeys = Object.keys(rule);
-        var amountRules = 1;
-        var verified = 0;
-        var triggers = [];
-        if (ruleKeys.includes("triggers")){
-          amountRules = Object.keys(rule.triggers).length;
-          triggers = rule.triggers;
-        } else {
-          triggers.push(rule.trigger);
-        }
-
-        triggers.forEach(function(trigger){
-          //Verify device to device
-          var value = '';
-          if (String(trigger.value).indexOf(">") > 0){
-            var id = trigger.value.split('>')[0];
-            var param = trigger.value.split('>')[1];
-            value = status[id][param];
-          } else {
-            value = trigger.value;
-          }
-          //Verify operators
-          if(trigger.operator == 1 && status[trigger.id][trigger.param] == value){
-            verified++; //Equal
-          } else if(trigger.operator == 2 && status[trigger.id][trigger.param] < value){
-            verified++; //General less than
-          } else if(trigger.operator == 3 && status[trigger.id][trigger.param] > value){
-            verified++; //General greather than
-          } else if(trigger.operator == 4 && h == parseInt(value.split(':')[0], 10) && m == parseInt(value.split(':')[1], 10)){
-            if(value.split(':').length == 3){
-              if(value.split(':')[2].includes(String(w))){
-                verified++; //Time greather than
-              }
-            } else {
-              verified++; //Time greather than
-            }
-
-          }
-
+      //Cache the rules to reduce the data downloaded from the database
+      var current_date = new Date().getTime();
+      if (current_date - cache.timestamp > chacheUpdateInterval){
+        admin.database().ref('/rules/').once('value').then(function(rulesSnap) {
+          var rules = rulesSnap.val();
+          cache.rules = rules;
+          cache.timestamp = current_date;
+          verifier(rules,status);
         });
+      } else {
+          verifier(cache.rules,status);
+      }
 
-        if(verified == amountRules){
-
-          Object(rule.targets).forEach(function(target){
-            var json = {};
-            json[target.param] = target.value;
-            admin.database().ref().child("status").child(target.id).update(json);
-          });
-        }
-      });
     });
 }
 
+function verifier(rules, status){
+  Object(rules).forEach(function(rule){
+    //Time
+    var d = new Date();
+    var h = d.getHours();
+    var m = d.getMinutes();
+    var w = d.getDay();
 
+    //Detect the kind of triger (simple or multiple)
+    var ruleKeys = Object.keys(rule);
+    var amountRules = 1;
+    var verified = 0;
+    var triggers = [];
+    if (ruleKeys.includes("triggers")){
+      amountRules = Object.keys(rule.triggers).length;
+      triggers = rule.triggers;
+    } else {
+      triggers.push(rule.trigger);
+    }
+
+    triggers.forEach(function(trigger){
+      //Verify device to device
+      var value = '';
+      if (String(trigger.value).indexOf(">") > 0){
+        var id = trigger.value.split('>')[0];
+        var param = trigger.value.split('>')[1];
+        value = status[id][param];
+      } else {
+        value = trigger.value;
+      }
+      //Verify operators
+      if(trigger.operator == 1 && status[trigger.id][trigger.param] == value){
+        verified++; //Equal
+      } else if(trigger.operator == 2 && status[trigger.id][trigger.param] < value){
+        verified++; //General less than
+      } else if(trigger.operator == 3 && status[trigger.id][trigger.param] > value){
+        verified++; //General greather than
+      } else if(trigger.operator == 4 && h == parseInt(value.split(':')[0], 10) && m == parseInt(value.split(':')[1], 10)){
+        if(value.split(':').length == 3){
+          if(value.split(':')[2].includes(String(w))){
+            verified++; //Time greather than
+          }
+        } else {
+          verified++; //Time greather than
+        }
+
+      }
+
+    });
+
+    if(verified == amountRules){
+
+      Object(rule.targets).forEach(function(target){
+        var json = {};
+        json[target.param] = target.value;
+        admin.database().ref().child("status").child(target.id).update(json);
+      });
+    }
+  });
+
+}
+//Cloud scheduler endpoint
 exports.cron = functions.https.onRequest((request, response) => {
   updatestates();
   expireTokens();
@@ -600,6 +619,7 @@ exports.rules = functions.database.ref('/status/').onUpdate(async (change, conte
   console.log("Done");
 });
 
+//API time
 exports.clock = functions.https.onRequest((request, response) => {
   var d = new Date();
   var h = d.getHours();
