@@ -46,7 +46,7 @@ exports.read = functions.https.onRequest((req, res) =>{
   }
 
   //Get tokenJSON from DDBB
-  admin.database().ref('/token/').child(agent).once('value')
+  admin.database().ref('/token/').child(id).once('value')
   .then(function(snapshot) {
     var tokenJSON = snapshot.val();
 
