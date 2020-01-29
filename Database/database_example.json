@@ -22,7 +22,7 @@
   } ],
   "settings" : {
     "bools" : {
-      "autoAthorization": true
+      "autoAuthentication": true
     },
     "strings" : {
       "codeKey": "-code"

@@ -494,7 +494,7 @@ save.addEventListener('click', e => {
         $("#savedAlert").remove();
       }, 5000);
   } else {
-    //window.location.href = "/cms/devices/";
+    window.location.href = "/cms/devices/";
   }
 });
 
