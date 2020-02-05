@@ -1,11 +1,11 @@
-# Homeware
-This API creates an integration between hardware devices like ESP8266 or Arduino and the Google Assitant using Firebase for the backend.
-
 # IMPORTANT
 
 During the develop of Homeware I have dicovered that Firebase is not a reliable platform for the porpuses that I try to achive with Homeware. Due to that situation I have decided to migrate Homeware to Homeware-LAN, a similar version but design for be deployd in a Raspberry Pi and communicate with the hardware via MQTT.
 
 Find the new repository here: https://github.com/kikeelectronico/Homeware-LAN
+
+# Homeware
+This API creates an integration between hardware devices like ESP8266 or Arduino and the Google Assitant using Firebase for the backend.
 
 <img alt="Super Grover" src="https://github.com/kikeelectronico/homeware/raw/master/images/cloud.png" />
 
