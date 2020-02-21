@@ -110,17 +110,20 @@ void loop() {
       Serial.print(F("deserializeJson() failed: "));
       Serial.println(error.c_str());
     } else {
-      //strcpy(mode, doc["thermostatMode"]); // the json returns "online":true or "online":false but never "thermostatMode" this cause reset
-      //temperatureSetPoint = doc["thermostatTemperatureSetpoint"];
+      //strcpy(mode, doc["thermostatMode"]); // the json returns "online":true or "online":false but never "thermostatMode" with  this cause reset
+      // if commandOnlyTemperatureSetting and queryOnlyTemperatureSetting are set to false or true then the json returns different strings for "thermostatMode"
+      
       thermostatTemperatureAmbient = doc["thermostatTemperatureAmbient"];
       thermostatHumidityAmbient = doc["thermostatHumidityAmbient"];
       thermostatTemperatureSetpoint = doc["thermostatTemperatureSetpoint"];
       // SetPoint high and Low are not interesting for me
       // this could be useful when triggering a hot and cold HVAC unit i.e.
+      // setting the start and stop trigger for hot and cold service
+      // ever according with the appliance
 
-      Serial.print("Humedad : ");
+      Serial.print("Humidity : ");
       Serial.println(thermostatHumidityAmbient);
-      Serial.print("Temperatura : ");
+      Serial.print("Temperature : ");
       Serial.println(thermostatTemperatureAmbient);
       Serial.print("Preset : ");
       Serial.println(thermostatTemperatureSetpoint);
