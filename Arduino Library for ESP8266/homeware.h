@@ -15,14 +15,14 @@ private:
   char _ref[50];
   char _actual[50];
   char _state[50];
-  char _json_c[200];
+  char _json_c[300];
   long int _last_user_call_time;
 
   bool _smart_connection_enabled;
   char _delay[25];
   int _update_time;
   long int _last_smart_connection_time;
-  char _update_json[200];
+  char _update_json[300];
 
   WiFiClientSecure* _client;
   const int _httpsPort = 443;
